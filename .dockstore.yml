@@ -1,0 +1,5 @@
+version: 1.2
+workflows:
+    - name: map_pubmed_ids_to_pgs_catalog
+      subclass: WDL
+      primaryDescriptorPath: /map_pubmed_ids_to_pgs_catalog.wdl
