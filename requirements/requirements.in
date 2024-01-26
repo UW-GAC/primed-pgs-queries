@@ -1,5 +1,5 @@
 jupyter  # for quarto
 pandas  # dataframes
 papermill  # parameters in python quarto files
-progressbar  # pretty progress bar
+progressbar2  # pretty progress bar
 requests  # api calls
