@@ -1,3 +1,5 @@
-pandas
-progressbar
-requests
+jupyter  # for quarto
+pandas  # dataframes
+papermill  # parameters in python quarto files
+progressbar  # pretty progress bar
+requests  # api calls
