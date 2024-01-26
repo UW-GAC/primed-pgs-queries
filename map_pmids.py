@@ -10,6 +10,7 @@ from pprint import pprint
 parser = argparse.ArgumentParser()
 parser.add_argument("--pmid-file", type=str, help="CSV file with PMIDs in a column")
 parser.add_argument("--pmid-header", type=str, default="PMID", help="Header for PMID column in pmid-file")
+parser.add_argument("--outfile", help="Output tsv file with pmid, pgp_id, pgs_type, and pgs_id")
 args = parser.parse_args()
 
 pubs = pd.read_csv(args.pmid_file)
@@ -34,4 +35,5 @@ for pmid in progressbar.progressbar(pmids):
         results_list.append(df)
 
 df = pd.concat(results_list)
-print(df)
+
+df.to_csv(args.outfile, sep="\t", index=False)
