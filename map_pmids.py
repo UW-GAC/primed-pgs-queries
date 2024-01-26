@@ -2,12 +2,12 @@ import argparse
 import time
 
 import pandas as pd
+import progressbar
 import requests
 
 from pprint import pprint
 
 parser = argparse.ArgumentParser()
-#parser.add_argument("--pmids", nargs="+", type=int)
 parser.add_argument("--pmid-file", type=str, help="CSV file with PMIDs in a column")
 parser.add_argument("--pmid-header", type=str, default="PMID", help="Header for PMID column in pmid-file")
 args = parser.parse_args()
@@ -18,7 +18,7 @@ pmids = pubs[args.pmid_header].tolist()
 pgp_url = "https://www.pgscatalog.org/rest/publication/search?pmid={pmid}"
 pgs_url = "https://www.pgscatalog.org/rest/score/{pgs_id}"
 results_list = []
-for pmid in pmids:
+for pmid in progressbar.progressbar(pmids):
     # Loop over pmids to see if they have an associated PGP record.
     time.sleep(1) # API is rate-limited at 1000 requests per minute.
     pgp_response = requests.get(pgp_url.format(pmid=pmid))
@@ -35,10 +35,3 @@ for pmid in pmids:
 
 df = pd.concat(results_list)
 print(df)
-# Track development PGSs and evaluation PGSes separately. Outfile can have columns:
-# PMID
-# PGP ID
-# PGS type (development/evaluation)
-# PGS ID
-# (so multiple rows per pmid)
-# print("Pubs associated with a PGP in PGS Catalog: {}/{}".format(count, len(pmids)))
