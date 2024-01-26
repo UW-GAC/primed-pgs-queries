@@ -5,7 +5,6 @@ import pandas as pd
 import progressbar
 import requests
 
-from pprint import pprint
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--pmid-file", type=str, help="CSV file with PMIDs in a column")
