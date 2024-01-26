@@ -4,6 +4,7 @@ import time
 import pandas as pd
 import requests
 
+from pprint import pprint
 
 parser = argparse.ArgumentParser()
 #parser.add_argument("--pmids", nargs="+", type=int)
@@ -15,13 +16,29 @@ pubs = pd.read_csv(args.pmid_file)
 pmids = pubs[args.pmid_header].tolist()
 
 pgp_url = "https://www.pgscatalog.org/rest/publication/search?pmid={pmid}"
-count = 0
+pgs_url = "https://www.pgscatalog.org/rest/score/{pgs_id}"
+results_list = []
 for pmid in pmids:
+    # Loop over pmids to see if they have an associated PGP record.
     time.sleep(1) # API is rate-limited at 1000 requests per minute.
-    url = pgp_url.format(pmid=pmid)
-    response = requests.get(url)
-    print(response.json())
-    if response.json()['count'] > 0:
-        count += 1
+    pgp_response = requests.get(pgp_url.format(pmid=pmid))
+    for result in pgp_response.json()["results"]:
+        df = (
+            pd.concat(pd.DataFrame({'pgs_type':k, 'pgs_id':v}) for k, v in result["associated_pgs_ids"].items())
+            .reset_index()
+            .drop(columns=["index"])
+        )
+        # Add PMID and pgp_id to each row.
+        df.insert(0, "pm_id", pmid)
+        df.insert(1, "pgp_id", result["id"])
+        results_list.append(df)
 
-print("Pubs associated with a PGP in PGS Catalog: {}/{}".format(count, len(pmids)))
+df = pd.concat(results_list)
+print(df)
+# Track development PGSs and evaluation PGSes separately. Outfile can have columns:
+# PMID
+# PGP ID
+# PGS type (development/evaluation)
+# PGS ID
+# (so multiple rows per pmid)
+# print("Pubs associated with a PGP in PGS Catalog: {}/{}".format(count, len(pmids)))
