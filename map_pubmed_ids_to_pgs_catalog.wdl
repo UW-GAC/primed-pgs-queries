@@ -53,6 +53,7 @@ task report {
     }
     command <<<
         R -e "rmarkdown::render('/usr/local/primed-pgs-queries/mapping_report.qmd', params=list(mapping_results_file='~{mapping_results_file}'))"
+        cp /usr/local/primed-pgs-queries/mapping_report.html ./
     >>>
     output {
         File report_file = "mapping_report.html"
