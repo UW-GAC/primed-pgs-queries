@@ -20,4 +20,4 @@ Once you have the mapping output file, you can generate a report about the match
 quarto render mapping_report.qmd -P mapping_results_file:test_output.tsv
 ```
 
-A WDL workflow is also provided.
+A [WDL workflow](https://dockstore.org/workflows/github.com/UW-GAC/anvil-util-workflows/backup_data_tables:main?tab=info) is also provided on Dockstore and as a .WDL file.
