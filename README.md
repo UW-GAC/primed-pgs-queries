@@ -14,4 +14,10 @@ The script can be run using the following command:
 python3 map_pmids.py --input test_input.csv --output test_output.tsv
 ```
 
+Once you have the mapping output file, you can generate a report about the matches.
+
+```
+quarto render mapping_report.qmd -P mapping_results_file:test_output.tsv
+```
+
 A WDL workflow is also provided.
