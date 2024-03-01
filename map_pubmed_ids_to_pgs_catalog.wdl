@@ -42,7 +42,7 @@ task map_ids {
     }
     runtime {
         # Pull from DockerHub
-        docker: "uwgac/primed-pgs-queries:0.1.0"
+        docker: "uwgac/primed-pgs-queries:0.2.0"
     }
 }
 
@@ -60,6 +60,6 @@ task report {
     }
     runtime {
         # Pull from DockerHub
-        docker: "uwgac/primed-pgs-queries:0.1.0"
+        docker: "uwgac/primed-pgs-queries:0.2.0"
     }
 }
