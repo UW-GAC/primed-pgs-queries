@@ -64,6 +64,37 @@ mapping_results %>%
     kable()
 ```
 
+## PGS info
+
+```{r}
+mapping_results %>%
+    select(pgs_id, trait_reported, ancestry_broad) %>%
+    distinct() %>%
+    kable()
+```
+
+
+## Number of unique PGS by ancestry
+```{r}
+mapping_results %>%
+    select(pgs_id, ancestry_broad) %>%
+    distinct() %>%
+    group_by(ancestry_broad) %>%
+    count() %>%
+    kable()
+```
+
+## Number of unique pubs by ancestry
+
+```{r}
+mapping_results %>%
+    select(pm_id, ancestry_broad) %>%
+    distinct() %>%
+    group_by(ancestry_broad) %>%
+    count() %>%
+    kable()
+```
+
 # Full mapping results
 
 ```{r}
