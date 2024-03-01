@@ -21,3 +21,20 @@ quarto render mapping_report.qmd -P mapping_results_file:test_output.tsv
 ```
 
 A [WDL workflow](https://dockstore.org/workflows/github.com/UW-GAC/anvil-util-workflows/backup_data_tables:main?tab=info) is also provided on Dockstore and as a .WDL file.
+
+
+## Building and pushing the docker image
+
+1. Push all changes to the repository. Note that the Docker image will build off the "main" branch on GitHub.
+
+1. Build the image. Make sure to include no caching, or else local scripts will not be updated.
+
+    ```bash
+    docker build --no-cache -t uwgac/primed-pgs-queries:X.Y.Z .
+    ```
+
+1. Push the image to Docker Hub.
+
+    ```bash
+    docker push uwgac/primed-pgs-queries:X.Y.Z
+    ```
