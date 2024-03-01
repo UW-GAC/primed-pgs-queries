@@ -43,6 +43,27 @@ mapping_results %>%
     kable()
 ```
 
+## Number of unique PGS by trait
+```{r}
+mapping_results %>%
+    select(pgs_id, trait_reported) %>%
+    distinct() %>%
+    group_by(trait_reported) %>%
+    count() %>%
+    kable()
+```
+
+## Number of unique pubs by trait
+
+```{r}
+mapping_results %>%
+    select(pm_id, trait_reported) %>%
+    distinct() %>%
+    group_by(trait_reported) %>%
+    count() %>%
+    kable()
+```
+
 # Full mapping results
 
 ```{r}
