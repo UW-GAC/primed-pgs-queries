@@ -35,4 +35,30 @@ for pmid in progressbar.progressbar(pmids):
 
 df = pd.concat(results_list)
 
+# Get additional info associated with each PGS
+pgs_ids = df["pgs_id"].unique()
+results_list = []
+for pgs_id in progressbar.progressbar(pgs_ids):
+    time.sleep(1) # API is rate-limited at 1000 requests per minute.
+    pgs_response = requests.get(pgs_url.format(pgs_id=pgs_id))
+    # Note that some PGS have more than one entry in the samples_variants list.
+    # assert len(pgs_response.json()["samples_variants"]) == 1
+    if len(pgs_response.json()["samples_variants"]) > 1:
+        ancestry_broad = "MULTIPLE"
+    elif len(pgs_response.json()["samples_variants"]) == 0:
+        ancestry_broad = "UNKNOWN"
+    else:
+        ancestry_broad = pgs_response.json()["samples_variants"][0]["ancestry_broad"]
+    results_list.append({
+            "pgs_id": pgs_id,
+            "trait_reported": pgs_response.json()["trait_reported"],
+            "ancestry_broad": ancestry_broad,
+    })
+
+df_scores = pd.DataFrame(results_list)
+
+# Combine with publication data.
+df = df.merge(df_scores, on="pgs_id", how="left")
+
+# Write to the output file.
 df.to_csv(args.outfile, sep="\t", index=False)
