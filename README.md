@@ -2,7 +2,9 @@
 
 This repository contains PRIMED queries of the [PGS Catalog](https://www.pgscatalog.org/) using the [PGS Catalog API](https://www.pgscatalog.org/rest-api).
 
-## Mapping PubmedIDs to the PGS catalog
+## Usage
+
+### Mapping PubmedIDs to the PGS catalog
 
 The `map_pmids.py` python script can be used to map a list of PubmedIDs to the PGS catalog.
 The script requires a csv file containing a list of PubmedIDs (one per line).
@@ -23,7 +25,9 @@ quarto render mapping_report.qmd -P mapping_results_file:test_output.tsv
 A [WDL workflow](https://dockstore.org/workflows/github.com/UW-GAC/anvil-util-workflows/backup_data_tables:main?tab=info) is also provided on Dockstore and as a .WDL file.
 
 
-## Building and pushing the docker image
+## Developer info
+
+### Building and pushing the docker image
 
 1. Push all changes to the repository. Note that the Docker image will build off the "main" branch on GitHub.
 
