@@ -27,6 +27,25 @@ A [WDL workflow](https://dockstore.org/workflows/github.com/UW-GAC/anvil-util-wo
 
 ## Developer info
 
+### Generating the API client
+
+1. Install [swagger-codegen](https://swagger.io/tools/swagger-codegen/).
+1. Generate the client.
+1. Copy the client to the top-level directory
+1. Make sure to include the client requirements in the project requirements file.
+
+The following code can be used:
+```bash
+# Generate.
+swagger-codegen generate -i https://www.pgscatalog.org/static/rest_api/openapi/openapi-schema.yml -l python -o tmp --config swagger_codegen_config.json
+
+# Copy
+cp -r tmp/pgs_catalog_client .
+
+# Update requirements.
+cp tmp/requirements.txt requirements/client-requirements.in
+```
+
 ### Building and pushing the docker image
 
 1. Push all changes to the repository. Note that the Docker image will build off the "main" branch on GitHub.
