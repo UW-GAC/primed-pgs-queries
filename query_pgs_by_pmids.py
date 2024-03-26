@@ -51,7 +51,6 @@ if __name__ == "__main__":
     # Read in the file and get PMIDs.
     pubs = pd.read_csv(args.pmid_file)
     pmids = pubs[args.pmid_header].tolist()
-    print(pmids)
 
     # get PGP records associated with each PMID
     # No need - we can just search for the scores/metrics associated with each PMID.
