@@ -2,6 +2,7 @@ from __future__ import print_function
 import os
 import argparse
 import json
+import time
 
 import pandas as pd
 from progressbar import progressbar
@@ -20,6 +21,7 @@ def get_pgs_records(pmids):
     score_api = pgs_catalog_client.ScoreEndpointsApi()
     pgs_records = []
     for pmid in progressbar(pmids):
+        time.sleep(0.5)
         response = score_api.search_scores(pmid=pmid)
         pgs_records = pgs_records + response.results
     return pgs_records
@@ -29,6 +31,7 @@ def get_metrics_records(pmids):
     metrics_api = pgs_catalog_client.PerformanceMetricEndpointsApi()
     metrics_records = []
     for pmid in progressbar(pmids):
+        time.sleep(0.5)
         response = metrics_api.search_performance_metrics(pmid=pmid)
         metrics_records = metrics_records + response.results
     return metrics_records
