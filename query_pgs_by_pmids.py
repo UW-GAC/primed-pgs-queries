@@ -4,6 +4,7 @@ import argparse
 import json
 
 import pandas as pd
+from progressbar import progressbar
 
 import pgs_catalog_client
 
@@ -18,7 +19,7 @@ def get_pgs_records(pmids):
     # Create an instance of the API class.
     score_api = pgs_catalog_client.ScoreEndpointsApi()
     pgs_records = []
-    for pmid in pmids:
+    for pmid in progressbar(pmids):
         response = score_api.search_scores(pmid=pmid)
         pgs_records = pgs_records + response.results
     return pgs_records
@@ -27,7 +28,7 @@ def get_metrics_records(pmids):
     # Create an instance of the API class.
     metrics_api = pgs_catalog_client.PerformanceMetricEndpointsApi()
     metrics_records = []
-    for pmid in pmids:
+    for pmid in progressbar(pmids):
         response = metrics_api.search_performance_metrics(pmid=pmid)
         metrics_records = metrics_records + response.results
     return metrics_records
