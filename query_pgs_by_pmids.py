@@ -15,6 +15,8 @@ def write_to_json(results, filename):
         f.write(json.dumps([x.to_dict() for x in results], default=str, indent=2))
 
 def get_pgs_records(pmids):
+    # Create an instance of the API class.
+    score_api = pgs_catalog_client.ScoreEndpointsApi()
     pgs_records = []
     for pmid in pmids:
         response = score_api.search_scores(pmid=pmid)
@@ -22,6 +24,8 @@ def get_pgs_records(pmids):
     return pgs_records
 
 def get_metrics_records(pmids):
+    # Create an instance of the API class.
+    metrics_api = pgs_catalog_client.PerformanceMetricEndpointsApi()
     metrics_records = []
     for pmid in pmids:
         response = metrics_api.search_performance_metrics(pmid=pmid)
@@ -39,11 +43,6 @@ if __name__ == "__main__":
 
     pubs = pd.read_csv(args.pmid_file)
     pmids = pubs[args.pmid_header].tolist()
-
-    # Create an instance of the API class.
-    score_api = pgs_catalog_client.ScoreEndpointsApi()
-    pubs_api = pgs_catalog_client.PublicationEndpointsApi()
-    metrics_api = pgs_catalog_client.PerformanceMetricEndpointsApi()
 
     # Read in the file and get PMIDs.
     pubs = pd.read_csv(args.pmid_file)
