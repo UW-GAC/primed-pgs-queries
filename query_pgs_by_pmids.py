@@ -55,9 +55,11 @@ if __name__ == "__main__":
 
     # Get PGS records associated with each PMID
     # These are PGS scores that are developed in the publication. It does not include evaluation/metrics.
+    print("Checking for metrics records associated with PMIDs:")
     pgs_records = get_pgs_records(pmids)
 
     # Get any metrics associated with a publication.
+    print("Checking for PGS records associated with PMIDs:")
     metrics_records = get_pgs_records(pmids)
 
     # Write output to a json file.
