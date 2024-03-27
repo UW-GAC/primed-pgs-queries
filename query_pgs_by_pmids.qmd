@@ -1,25 +1,27 @@
 ---
 title: "PRIMED Publications in PGS catalog"
+author: "PRIMED CC"
+date: "`r lubridate::today()`"
 format:
   html:
-    code-fold: true
     toc: true
+execute:
+  echo: false
 params:
     score_records_file: NA
     metrics_records_file: NA
     publication_records_file: NA
 ---
 
-```{r library}
+```{r library, include=FALSE}
 library(tidyverse)
 library(knitr)
 library(jsonlite)
 library(kableExtra)
 
 options(knitr.kable.NA = '--')
+knitr::opts_chunk$set(echo=FALSE)
 ```
-
-# Read in results files
 
 ```{r}
 scores = tibble(record=read_json(file.path(params$score_records_file)))
