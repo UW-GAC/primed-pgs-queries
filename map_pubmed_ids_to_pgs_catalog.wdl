@@ -2,12 +2,12 @@ version 1.0
 
 workflow map_pubmed_ids_to_pgs_catalog {
     input {
-        File pubmed_id_file
+        String pmid_url
         String pmid_column = "PMID"
     }
     call query_pubs {
         input:
-            pubmed_id_file=pubmed_id_file,
+            pmid_url=pmid_url,
             pmid_column=pmid_column
     }
     call run_pubs_report {
@@ -33,13 +33,13 @@ workflow map_pubmed_ids_to_pgs_catalog {
 
 task query_pubs {
     input {
-        File pubmed_id_file
+        String pmid_url = "https://primedconsortium.org/publications/published/export?page&_format=csv"
         String pmid_column = "PMID"
     }
     command <<<
         # Query PGS catalog and save output.
         python3 /usr/local/primed-pgs-queries/query_pgs_by_pmids.py \
-            --pmid-file ~{pubmed_id_file} \
+            --pmid-url "~{pmid_url}" \
             --pmid-header ~{pmid_column} \
             --outdir "output"
     >>>
