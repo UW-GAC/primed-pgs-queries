@@ -86,6 +86,6 @@ if __name__ == "__main__":
 
     # Write output to a json file.
     os.makedirs(args.outdir, exist_ok=True)
-    write_to_json(pubs_records, os.path.join(args.outdir,"records_pubs.json"))
-    write_to_json(pgs_records, os.path.join(args.outdir, "records_pgs.json"))
-    write_to_json(metrics_records, os.path.join(args.outdir,"records_metrics.json"))
+    write_to_json(pubs_records, os.path.join(args.outdir,"pubs_records.json"))
+    write_to_json(pgs_records, os.path.join(args.outdir, "score_records.json"))
+    write_to_json(metrics_records, os.path.join(args.outdir,"metrics_records.json"))
