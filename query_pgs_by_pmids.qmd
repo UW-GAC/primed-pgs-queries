@@ -3,6 +3,7 @@ title: "PRIMED Publications in PGS catalog"
 format:
   html:
     code-fold: true
+    toc: true
 params:
     results_directory: NA
 ---
@@ -11,6 +12,9 @@ params:
 library(tidyverse)
 library(knitr)
 library(jsonlite)
+library(kableExtra)
+
+options(knitr.kable.NA = '--')
 ```
 
 # Read in results files
@@ -81,5 +85,80 @@ x %>%
     `PRS developed`=length(unique(pgs_id[type=="development"])),
     `PRS evaluated`=length(unique(pgs_id[type=="evaluation"]))
   ) %>%
+  kable()
+```
+
+
+# Ancestry information
+
+## Ancestry groups used to develop PGS in PRIMED publications
+
+```{r}
+p = pubs %>%
+  hoist(record,
+    pgp_id="id",
+    "pmid",
+    "associated_pgs_ids"
+  ) %>%
+  unnest_wider(associated_pgs_ids) %>%
+  pivot_longer(c(development, evaluation), names_to="type", values_to="pgs_id") %>%
+  unnest_longer(pgs_id) %>%
+  filter(type == "development") %>%
+  select(-type)
+
+s = scores %>% hoist(record,
+    pgs_id="id",
+    trait="trait_reported",
+    gwas=c("ancestry_distribution", "gwas", "dist"),
+    dev=c("ancestry_distribution", "dev", "dist")
+  ) %>%
+  pivot_longer(c(gwas, dev), names_to="stage", values_to="dist") %>%
+  unnest_longer("dist") %>%
+  pivot_wider(names_from="dist_id", values_from="dist")
+
+x <- p %>% left_join(s, by="pgs_id") %>%
+  select(trait, pgs_id, everything(), -pgp_id, -record.x, -record.y, -pmid) %>%
+  arrange(trait, pgs_id, desc(stage))
+
+x %>%
+  kable() %>%
+  collapse_rows(columns = 1:2, valign = "top")
+```
+
+## Ancestry groups used for evaluation by PRIMED publications
+
+```{r}
+m = metrics %>%
+  hoist(record,
+    pgs_id="associated_pgs_id",
+    pgp_id=c("publication", "id"),
+    pmid=c("publication", "pmid"),
+    samples=c("sampleset", "samples"),
+  ) %>%
+  unnest_longer(samples) %>%
+  hoist(samples, "ancestry_broad")
+
+s = scores %>%
+  hoist(record,
+    pgs_id="id",
+    trait="trait_reported"
+  )
+
+x <- m %>%
+  left_join(s, by = "pgs_id")
+
+x %>%
+  group_by(trait, ancestry_broad) %>%
+  count() %>%
+  mutate(n=as.character(n)) %>%
+  pivot_wider(names_from="ancestry_broad", values_from="n", values_fill="--") %>%
+  kable()
+```
+
+### Full evaluation table
+
+```{r}
+x %>%
+  select(trait, pgp_id, pmid, ancestry_broad) %>%
   kable()
 ```
