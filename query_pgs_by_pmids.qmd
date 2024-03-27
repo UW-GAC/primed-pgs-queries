@@ -1,0 +1,85 @@
+---
+title: "PRIMED Publications in PGS catalog"
+format:
+  html:
+    code-fold: true
+params:
+    results_directory: NA
+---
+
+```{r library}
+library(tidyverse)
+library(knitr)
+library(jsonlite)
+```
+
+# Read in results files
+
+```{r}
+scores = tibble(record=read_json(file.path(params$results_directory, "records_pgs.json")))
+metrics = tibble(record=read_json(file.path(params$results_directory, "records_metrics.json")))
+pubs = tibble(record=read_json(file.path(params$results_directory, "records_pubs.json")))
+
+#mapping_results = read_tsv(params$mapping_results_file, show_col_types=FALSE)
+```
+
+
+# Counts by PRS type
+
+This table shows the number of unique publications and PRS by PRS type (development vs. evaluation). The numbers count results from PRIMED publications only.
+
+```{r}
+s = scores %>% hoist(record,
+    pgs_id="id",
+  )
+p = pubs %>%
+  hoist(record,
+    pgp_id="id",
+    "pmid",
+    "associated_pgs_ids"
+  ) %>%
+  unnest_wider(associated_pgs_ids) %>%
+  pivot_longer(c(development, evaluation), names_to="type", values_to="pgs_id") %>%
+  unnest_longer(pgs_id)
+
+p %>%
+  group_by(type) %>%
+  summarise(
+    Publications=length(unique(pmid)),
+    PRS=length(unique(pgs_id))
+  ) %>%
+  kable()
+```
+
+# Counts by trait
+
+This table shows the number of unique publications, the number of PRS developed, and the number of PRS evaluated for each trait. The numbers count results from PRIMED publications only.
+
+```{r}
+p = pubs %>%
+  hoist(record,
+    pgp_id="id",
+    "pmid",
+    "associated_pgs_ids"
+  ) %>%
+  unnest_wider(associated_pgs_ids) %>%
+  pivot_longer(c(development, evaluation), names_to="type", values_to="pgs_id") %>%
+  unnest_longer(pgs_id)
+
+s = scores %>% hoist(record,
+    pgs_id="id",
+    trait="trait_reported"
+  )
+
+x <- p %>%
+  left_join(s, by ="pgs_id")
+
+x %>%
+  group_by(Trait=trait) %>%
+  summarise(
+    `Publications`=length(unique(pmid)),
+    `PRS developed`=length(unique(pgs_id[type=="development"])),
+    `PRS evaluated`=length(unique(pgs_id[type=="evaluation"]))
+  ) %>%
+  kable()
+```
