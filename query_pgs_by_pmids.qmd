@@ -23,7 +23,7 @@ options(knitr.kable.NA = '--')
 
 ```{r}
 scores = tibble(record=read_json(file.path(params$score_records_file)))
-metrics = tibble(record=read_json(file.path(params$metric_records_file)))
+metrics = tibble(record=read_json(file.path(params$metrics_records_file)))
 pubs = tibble(record=read_json(file.path(params$publication_records_file)))
 
 #mapping_results = read_tsv(params$mapping_results_file, show_col_types=FALSE)
