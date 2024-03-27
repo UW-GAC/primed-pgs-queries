@@ -47,17 +47,19 @@ def get_metrics_records(pmids):
 if __name__ == "__main__":
     # Parse arguments.
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pmid-file", type=str, help="CSV file with PMIDs in a column")
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument("--pmid-file", type=str, help="CSV file with PMIDs in a column")
+    input_group.add_argument("--pmid-url", type=str, help="URL to a CSV file with PMIDs in a column")
     parser.add_argument("--pmid-header", type=str, default="PMID", help="Header for PMID column in pmid-file")
     parser.add_argument("--outdir", help="Directory in which output will be stored", default=".")
 
     args = parser.parse_args()
 
-    pubs = pd.read_csv(args.pmid_file)
-    pmids = pubs[args.pmid_header].tolist()
-
-    # Read in the file and get PMIDs.
-    pubs = pd.read_csv(args.pmid_file)
+    print(args)
+    if args.pmid_url:
+        pubs = pd.read_csv(args.pmid_url)
+    else:
+        pubs = pd.read_csv(args.pmid_file)
     pmids = pubs[args.pmid_header].tolist()
 
     # get PGP records associated with each PMID
