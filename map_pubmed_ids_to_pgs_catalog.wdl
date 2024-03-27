@@ -2,7 +2,7 @@ version 1.0
 
 workflow map_pubmed_ids_to_pgs_catalog {
     input {
-        String pmid_url
+        String pmid_url = "https://primedconsortium.org/publications/published/export?page&_format=csv"
         String pmid_column = "PMID"
     }
     call query_pubs {
@@ -33,7 +33,7 @@ workflow map_pubmed_ids_to_pgs_catalog {
 
 task query_pubs {
     input {
-        String pmid_url = "https://primedconsortium.org/publications/published/export?page&_format=csv"
+        String pmid_url
         String pmid_column = "PMID"
     }
     command <<<
