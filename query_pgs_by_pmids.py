@@ -16,15 +16,23 @@ def write_to_json(results, filename):
     with open(filename, "w") as f:
         f.write(json.dumps([x.to_dict() for x in results], default=str, indent=2))
 
-def get_pgs_records(pmids):
+def get_publication_records(pmids):
     # Create an instance of the API class.
-    score_api = pgs_catalog_client.ScoreEndpointsApi()
-    pgs_records = []
+    publication_api = pgs_catalog_client.PublicationEndpointsApi()
+    publication_records = []
     for pmid in progressbar(pmids):
         time.sleep(0.5)
-        response = score_api.search_scores(pmid=pmid)
-        pgs_records = pgs_records + response.results
-    return pgs_records
+        response = publication_api.search_publications(pmid=pmid)
+        publication_records = publication_records + response.results
+    return publication_records
+
+def get_pgs_records(pgs_ids):
+    # Create an instance of the API class.
+    score_api = pgs_catalog_client.ScoreEndpointsApi()
+    response = score_api.get_all_scores(filter_ids=",".join(pgs_ids))
+    if response.next:
+        raise NotImplementedError("Pagination not implemented")
+    return response.results
 
 def get_metrics_records(pmids):
     # Create an instance of the API class.
@@ -53,18 +61,31 @@ if __name__ == "__main__":
     pmids = pubs[args.pmid_header].tolist()
 
     # get PGP records associated with each PMID
-    # No need - we can just search for the scores/metrics associated with each PMID.
+    print("Checking for publication records associated with PMIDs...")
+    pubs_records = get_publication_records(pmids)
 
-    # Get PGS records associated with each PMID
-    # These are PGS scores that are developed in the publication. It does not include evaluation/metrics.
-    print("Checking for metrics records associated with PMIDs:")
-    pgs_records = get_pgs_records(pmids)
+    pgs_ids = []
+    for record in pubs_records:
+        try:
+            pgs_ids = pgs_ids + record.associated_pgs_ids.development
+        except AttributeError:
+            pass
+        try:
+            pgs_ids = pgs_ids + record.associated_pgs_ids.evaluation
+        except AttributeError:
+            pass
+    pgs_ids = set(pgs_ids)
+
+    # Get PGS records associated with each publication.
+    print("Checking for metrics records...")
+    pgs_records = get_pgs_records(pgs_ids)
 
     # Get any metrics associated with a publication.
-    print("Checking for PGS records associated with PMIDs:")
-    metrics_records = get_pgs_records(pmids)
+    print("Checking for PGS metrics...")
+    metrics_records = get_metrics_records(pmids)
 
     # Write output to a json file.
     os.makedirs(args.outdir, exist_ok=True)
-    write_to_json(metrics_records, os.path.join(args.outdir,"records_metrics.json"))
+    write_to_json(pubs_records, os.path.join(args.outdir,"records_pubs.json"))
     write_to_json(pgs_records, os.path.join(args.outdir, "records_pgs.json"))
+    write_to_json(metrics_records, os.path.join(args.outdir,"records_metrics.json"))
