@@ -5,7 +5,9 @@ format:
     code-fold: true
     toc: true
 params:
-    results_directory: NA
+    score_records_file: NA
+    metric_records_file: NA
+    publication_records_file: NA
 ---
 
 ```{r library}
@@ -20,9 +22,9 @@ options(knitr.kable.NA = '--')
 # Read in results files
 
 ```{r}
-scores = tibble(record=read_json(file.path(params$results_directory, "records_pgs.json")))
-metrics = tibble(record=read_json(file.path(params$results_directory, "records_metrics.json")))
-pubs = tibble(record=read_json(file.path(params$results_directory, "records_pubs.json")))
+scores = tibble(record=read_json(file.path(params$score_records_file)))
+metrics = tibble(record=read_json(file.path(params$metric_records_file)))
+pubs = tibble(record=read_json(file.path(params$publication_records_file)))
 
 #mapping_results = read_tsv(params$mapping_results_file, show_col_types=FALSE)
 ```
