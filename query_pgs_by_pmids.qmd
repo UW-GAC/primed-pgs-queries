@@ -6,7 +6,7 @@ format:
     toc: true
 params:
     score_records_file: NA
-    metric_records_file: NA
+    metrics_records_file: NA
     publication_records_file: NA
 ---
 
