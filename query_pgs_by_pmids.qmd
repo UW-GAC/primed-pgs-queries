@@ -286,12 +286,6 @@ Please see the [PGS Catalog Ancestry documentation](https://www.pgscatalog.org/d
 
 ## Ancestry groups used for evaluation by PRIMED publications
 
-XXX - Add in PGS_ID here like table above
-XXX Note that some metrics have multiple ancestries associated with them and will be counted multiple times in this table. Need to fix this somehow
-- Pull PSS from api and get smaple info?
-- count number of PSS's associated with PRIMED
-    - eg for PGS7: https://www.pgscatalog.org/score/PGS000007/#PSS009971 there are multiple records for a given PGS and PSS. Same cohort evaluated multiple times?
-- do we want to count the number of metrics records, or the number of sample sets?
 
 - Best idea so far:
   - group by trait and pgs AND a new gruping variable - number of  unique smaple sets and number of evaluations (metric_ids) reported. Note in text that a a sample set can be evaluated multiple times for a single PRS, for example by changing covariates.
@@ -307,9 +301,9 @@ m = metrics %>%
     pgp_id=c("publication", "id"),
     pmid=c("publication", "pmid"),
     samples=c("sampleset", "samples"),
-  ) %>%
-  unnest_longer(samples) %>%
-  hoist(samples, "ancestry_broad")
+  )
+# Add ancestry category
+m$ancestry_category = sapply(m$samples, get_samples_combined_ancestry_key)
 
 s = scores %>%
   hoist(record,
@@ -318,23 +312,19 @@ s = scores %>%
   )
 
 x <- m %>%
-  left_join(s, by = "pgs_id")
-
-x %>%
-  group_by(trait, ancestry_broad) %>%
+  left_join(s, by = "pgs_id") %>%
+  group_by(trait, pgs_id, ancestry_category) %>%
   count() %>%
-  mutate(n=as.character(n)) %>%
-  pivot_wider(names_from="ancestry_broad", values_from="n", values_fill="--") %>%
-  kable()
-```
+  mutate(n=as.character(n))
 
-### Full evaluation table
-
-```{r}
 x %>%
-  select(trait, pgp_id, pmid, ancestry_broad) %>%
-  kable()
+  pivot_wider(names_from="ancestry_category", values_from="n", values_fill="--") %>%
+  kable() %>%
+  kable_styling() %>%
+  collapse_rows(columns = 1:2, valign = "top")
 ```
+
+
 
 # Publications
 
