@@ -32,9 +32,12 @@ pubs = tibble(record=read_json(file.path(params$publication_records_file)))
 ```
 
 
+
 # Counts by PRS type
 
-This table shows the number of unique publications and PRS by PRS type (development vs. evaluation). The numbers count results from PRIMED publications only.
+This table shows the number of unique publications and PRS by PRS type (development vs. evaluation). The numbers count results from PRIMED publications only. A single publication can include both development and evaluation of a PRS.
+
+XXX maybe try having a "total" and "subset" rows
 
 ```{r}
 s = scores %>% hoist(record,
@@ -61,7 +64,9 @@ p %>%
 
 # Counts by trait
 
-This table shows the number of unique publications, the number of PRS developed, and the number of PRS evaluated for each trait. The numbers count results from PRIMED publications only.
+This table shows the number of unique publications, the number of unique PRS developed, and the number of unique PRS evaluated for each trait. The numbers count results from PRIMED publications only.
+
+XXX Add total number of unique sample sets evaluated, total number of evaluations for each trait
 
 ```{r}
 p = pubs %>%
@@ -95,7 +100,9 @@ x %>%
 
 # Ancestry information
 
-## Ancestry groups used to develop PGS in PRIMED publications
+## Ancestry groups used to develop PRS in PRIMED publications
+
+XXX - add key
 
 ```{r}
 p = pubs %>%
@@ -132,6 +139,19 @@ x %>%
 
 ## Ancestry groups used for evaluation by PRIMED publications
 
+XXX - Add in PGS_ID here like table above
+XXX Note that some metrics have multiple ancestries associated with them and will be counted multiple times in this table. Need to fix this somehow
+- Pull PSS from api and get smaple info?
+- count number of PSS's associated with PRIMED
+    - eg for PGS7: https://www.pgscatalog.org/score/PGS000007/#PSS009971 there are multiple records for a given PGS and PSS. Same cohort evaluated multiple times?
+- do we want to count the number of metrics records, or the number of sample sets?
+
+- Best idea so far:
+  - group by trait and pgs AND a new gruping variable - number of  unique smaple sets and number of evaluations (metric_ids) reported. Note in text that a a sample set can be evaluated multiple times for a single PRS, for example by changing covariates.
+  - as columns: try to see if we can use the same abbreivations as in the development table. Probably need to pull the PSS id. Unfortunately that does not seem to appear
+
+- Pull ancestry_broad from sample sets and try to apply their rules to get to the same categories as the development table?
+
 ```{r}
 m = metrics %>%
   hoist(record,
@@ -167,3 +187,13 @@ x %>%
   select(trait, pgp_id, pmid, ancestry_broad) %>%
   kable()
 ```
+
+# Publications
+
+XXX add table of publications.
+- author
+- title
+- pmid
+- pgpid
+- list of traits(?) only if not unwieldy
+- (or) number of prs developed and number of prs evaluated per pub
