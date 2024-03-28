@@ -33,11 +33,9 @@ pubs = tibble(record=read_json(file.path(params$publication_records_file)))
 
 
 
-# Counts by PRS type
+# Summary
 
-This table shows the number of unique publications and PRS by PRS type (development vs. evaluation). The numbers count results from PRIMED publications only. A single publication can include both development and evaluation of a PRS.
-
-XXX maybe try having a "total" and "subset" rows
+This table shows the number of unique publications, the number of PRS developed in PRIMED publication, and the number of unique PRS evaluated by PRIMED publications. A single publication can include both development and evaluation of a PRS.
 
 ```{r}
 s = scores %>% hoist(record,
@@ -54,11 +52,12 @@ p = pubs %>%
   unnest_longer(pgs_id)
 
 p %>%
-  group_by(type) %>%
   summarise(
-    Publications=length(unique(pmid)),
-    PRS=length(unique(pgs_id))
+    `Publications`=length(unique(pgp_id)),
+    `PRS developed`=length(unique(pgs_id[type=="development"])),
+    `PRS evaluated`=length(unique(pgs_id[type=="evaluation"])),
   ) %>%
+  pivot_longer(everything(), names_to="Summary", values_to="N") %>%
   kable()
 ```
 
