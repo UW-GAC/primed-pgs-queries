@@ -119,9 +119,134 @@ x %>%
 
 # Ancestry information
 
-## Ancestry groups used to develop PRS in PRIMED publications
+```{r}
+# Pulling ancestry info from PGS Catalog source code.
 
-XXX - add key
+# https://github.com/PGScatalog/PGS_Catalog/blob/af8cc04817c976bbb666bbfd73c3ba127fca1911/pgs_web/constants.py#L84
+ANCESTRY_MAPPINGS = c(
+  'Aboriginal Australian' = 'OTH',
+  'African American or Afro-Caribbean' = 'AFR',
+  'African unspecified'  = 'AFR',
+  'Asian unspecified' = 'ASN',
+  'Central Asian' = 'ASN',
+  'East Asian' = 'EAS',
+  'European' = 'EUR',
+  'Greater Middle Eastern (Middle Eastern, North African or Persian)' = 'GME',
+  'Hispanic or Latin American' = 'AMR',
+  'Native American' = 'OTH',
+  'Not reported' = 'NR',
+  'NR' = 'NR', # Not reported
+  'Oceanian' = 'OTH',
+  'Other' = 'OTH',
+  'Other admixed ancestry' = 'OTH',
+  'South Asian' = 'SAS',
+  'South East Asian' = 'ASN',
+  'Sub-Saharan African' = 'AFR',
+  'Sub-Saharan African, African American or Afro-Caribbean' = 'AFR'
+)
+
+# https://github.com/PGScatalog/PGS_Catalog/blob/af8cc04817c976bbb666bbfd73c3ba127fca1911/pgs_web/constants.py#L106C1-L119C1
+ANCESTRY_LABELS = c(
+    'MAE' = 'Multi-ancestry (including European)',
+    'MAO' = 'Multi-ancestry (excluding European)',
+    'AFR' = 'African',
+    'EAS' = 'East Asian',
+    'SAS' = 'South Asian',
+    'ASN' = 'Additional Asian Ancestries',
+    'EUR' = 'European',
+    'GME' = 'Greater Middle Eastern',
+    'AMR' = 'Hispanic or Latin American',
+    'OTH' = 'Additional Diverse Ancestries',
+    'NR'  = 'Not Reported'
+)
+
+# Replicating samples_combined_ancestry_key from PRS Catalog:
+
+# https://github.com/PGScatalog/PGS_Catalog/blob/af8cc04817c976bbb666bbfd73c3ba127fca1911/catalog/models.py#L820
+# def get_ancestry_key(self,anc):
+    # anc_key = 'OTH'
+    # if anc in constants.ANCESTRY_MAPPINGS.keys():
+    #     anc_key = constants.ANCESTRY_MAPPINGS[anc]
+    # elif ',' in anc:
+    #     if 'European' in anc:
+    #         anc_key = 'MAE'
+    #     else:
+    #         anc_key = 'MAO'
+    # return anc_key
+
+get_ancestry_key <- function(anc) {
+  anc_key = "OTH"
+  if (anc %in% names(ANCESTRY_MAPPINGS)) {
+    anc_key = ANCESTRY_MAPPINGS[anc]
+  } else if ("," %in% anc) {
+    if ("European" %in% anc) {
+      anc_key = "MAE"
+    } else {
+      anc_key = "MAO"
+    }
+  }
+  return(unname(anc_key))
+}
+
+
+# https://github.com/PGScatalog/PGS_Catalog/blob/af8cc04817c976bbb666bbfd73c3ba127fca1911/catalog/models.py#L776
+# def samples_combined_ancestry_key(self):
+#     '''
+#     Fetch the ancestry of each sample and group them into multi-ancestry
+#     if there are more than one ancestry categories.
+#     Returns the corresponding ancestry key (2-3 letters).
+#     '''
+#     ancestry_list = []
+#     main_ancestry_key = ''
+#     for sample in self.samples.all():
+#         ancestry = sample.ancestry_broad.strip()
+#         ancestry_key = self.get_ancestry_key(ancestry)
+#         if ancestry_key and ancestry_key not in ancestry_list:
+#             ancestry_list.append(ancestry_key)
+
+#     if len(ancestry_list) > 1:
+#         has_eur = 0
+#         for anc in ancestry_list:
+#             if anc == 'EUR':
+#                 has_eur = 1
+#         if has_eur == 1:
+#             main_ancestry_key = 'MAE'
+#         else:
+#             main_ancestry_key = 'MAO'
+#     else:
+#         main_ancestry_key = ancestry_list[0]
+#     return main_ancestry_key
+
+get_samples_combined_ancestry_key <- function(samples) {
+  # Extract the ancestries associated with the sample set.
+  ancestry_list = c()
+  main_ancestry_key = ""
+  for (sample in samples) {
+    ancestry_list = c(ancestry_list, get_ancestry_key(sample$ancestry_broad))
+  }
+  # Map to PGS codes.
+  if (length(ancestry_list) > 1) {
+    if ("EUR" %in% ancestry_list) {
+      main_ancestry_key = "MAE"
+    } else {
+      main_ancestry_key = "MAO"
+    }
+  } else {
+    main_ancestry_key = ancestry_list
+  }
+  return(main_ancestry_key)
+}
+```
+
+## Key
+
+This table shows the ancestry groups as defined by PRS Catalog that will be used later in this document.
+
+```{r}
+enframe(ANCESTRY_LABELS, name="Abbreviation", value="Ancestry") %>% kable()
+```
+
+## Ancestry groups used to develop PRS in PRIMED publications
 
 ```{r}
 p = pubs %>%
@@ -156,6 +281,9 @@ x %>%
   collapse_rows(columns = 1:2, valign = "top")
 ```
 
+Please see the [PGS Catalog Ancestry documentation](https://www.pgscatalog.org/docs/ancestry/#anc_dist) for more information.
+
+
 ## Ancestry groups used for evaluation by PRIMED publications
 
 XXX - Add in PGS_ID here like table above
@@ -174,6 +302,7 @@ XXX Note that some metrics have multiple ancestries associated with them and wil
 ```{r}
 m = metrics %>%
   hoist(record,
+    ppm_id="id",
     pgs_id="associated_pgs_id",
     pgp_id=c("publication", "id"),
     pmid=c("publication", "pmid"),
