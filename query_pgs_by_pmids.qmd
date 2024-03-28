@@ -63,9 +63,15 @@ p %>%
 
 # Counts by trait
 
-This table shows the number of unique publications, the number of unique PRS developed, and the number of unique PRS evaluated for each trait. The numbers count results from PRIMED publications only.
+This table shows the number of unique publications, the number of unique PRS developed, the number of and the number of unique PRS evaluated for each trait. The numbers count results from PRIMED publications only.
 
-XXX Add total number of unique sample sets evaluated, total number of evaluations for each trait
+The columns in this table represent the following numbers:
+
+- Publications: The number of PRIMED publications that developed or evaluated PRS for the listed trait
+- PRS developed: The number of unique PRS developed in PRIMED publications for this trait.
+- PRS evaluated: The number of unique PRS evaluated in PRIMED publications for this trait.
+- Sample sets: The number of unique sample sets used for evaluation of PRS for this trait by PRIMED publications.
+- Evaluations: The total number of evaluations for this trait in PRIMED publications. Note that this count can include multiple evaluations of the same PRS in the same sample set, for example with different covariates.
 
 ```{r}
 p = pubs %>%
@@ -78,20 +84,34 @@ p = pubs %>%
   pivot_longer(c(development, evaluation), names_to="type", values_to="pgs_id") %>%
   unnest_longer(pgs_id)
 
-s = scores %>% hoist(record,
+s = scores %>%
+  hoist(record,
     pgs_id="id",
     trait="trait_reported"
   )
 
+m = metrics %>%
+  hoist(record,
+    ppm_id="id",
+    pgs_id="associated_pgs_id",
+    pgp_id=c("publication", "id"),
+    pss_id=c("sampleset", "id")
+  ) %>%
+  mutate(type="evaluation")
+
 x <- p %>%
-  left_join(s, by ="pgs_id")
+  left_join(s, by ="pgs_id") %>%
+  left_join(m, by=c("pgp_id", "pgs_id", "type"))
+
 
 x %>%
   group_by(Trait=trait) %>%
   summarise(
     `Publications`=length(unique(pmid)),
     `PRS developed`=length(unique(pgs_id[type=="development"])),
-    `PRS evaluated`=length(unique(pgs_id[type=="evaluation"]))
+    `PRS evaluated`=length(unique(pgs_id[type=="evaluation"])),
+    `Sample sets`=length(unique(pss_id[type=="evaluation"])),
+    `Evaluations`=length(pgs_id[type=="evaluation"]),
   ) %>%
   kable()
 ```
