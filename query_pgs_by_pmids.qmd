@@ -328,6 +328,26 @@ x %>%
 
 # Publications
 
+This table shows the list of publications that mapped to the PGS catalog and were used for reporting in this document.
+More information about each publication can be found on the [PRIMED consortium website](https://primedconsortium.org/publications/published).
+
+```{r}
+p = pubs %>%
+  hoist(record,
+    "pmid",
+    pgp_id="id",
+    Title="title",
+    "authors"
+  ) %>%
+  select(-record) %>%
+  separate(authors, into=c("First author"), extra="drop", sep=",")
+
+p %>%
+  kable()
+
+
+```
+
 XXX add table of publications.
 - author
 - title
