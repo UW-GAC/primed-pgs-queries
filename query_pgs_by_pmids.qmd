@@ -7,6 +7,8 @@ format:
     toc: true
 execute:
   echo: false
+output:
+  rmdformats::html_clean
 params:
     score_records_file: NA
     metrics_records_file: NA
@@ -246,7 +248,15 @@ This table shows the ancestry groups as defined by PRS Catalog that will be used
 enframe(ANCESTRY_LABELS, name="Abbreviation", value="Ancestry") %>% kable()
 ```
 
+
+Please see the [PGS Catalog Ancestry documentation](https://www.pgscatalog.org/docs/ancestry/#anc_dist) for more information.
+
 ## Ancestry groups used to develop PRS in PRIMED publications
+
+This table shows the ancestry groups in which PRS have been developed by PRIMED publications.
+"Stage" represents the stage at which that ancestry group was included: "gwas" means the samples in which the summary statistics used to derive the PRS were created; and "dev" means the samples used to train the PRS model.
+The entry for each PGS and ancestry category is the percentage of samples from that ancestry category that contributed.
+
 
 ```{r}
 p = pubs %>%
@@ -267,12 +277,16 @@ s = scores %>% hoist(record,
     gwas=c("ancestry_distribution", "gwas", "dist"),
     dev=c("ancestry_distribution", "dev", "dist")
   ) %>%
-  pivot_longer(c(gwas, dev), names_to="stage", values_to="dist") %>%
-  unnest_longer("dist") %>%
-  pivot_wider(names_from="dist_id", values_from="dist")
+  pivot_longer(c(gwas, dev), names_to="stage", values_to="distrib") %>%
+  unnest_longer("distrib") %>%
+  mutate(
+    distrib=glue::glue("{distrib}%"),
+    distrib_id = ordered(distrib_id, levels=names(ANCESTRY_LABELS))
+  ) %>%
+  pivot_wider(names_from="distrib_id", values_from="distrib", names_expand=TRUE)
 
 x <- p %>% left_join(s, by="pgs_id") %>%
-  select(trait, pgs_id, everything(), -pgp_id, -record.x, -record.y, -pmid) %>%
+  select(trait, pgs_id, stage, all_of(names(ANCESTRY_LABELS))) %>%
   arrange(trait, pgs_id, desc(stage))
 
 x %>%
@@ -281,17 +295,12 @@ x %>%
   collapse_rows(columns = 1:2, valign = "top")
 ```
 
-Please see the [PGS Catalog Ancestry documentation](https://www.pgscatalog.org/docs/ancestry/#anc_dist) for more information.
-
 
 ## Ancestry groups used for evaluation by PRIMED publications
 
-
-- Best idea so far:
-  - group by trait and pgs AND a new gruping variable - number of  unique smaple sets and number of evaluations (metric_ids) reported. Note in text that a a sample set can be evaluated multiple times for a single PRS, for example by changing covariates.
-  - as columns: try to see if we can use the same abbreivations as in the development table. Probably need to pull the PSS id. Unfortunately that does not seem to appear
-
-- Pull ancestry_broad from sample sets and try to apply their rules to get to the same categories as the development table?
+This table shows the ancestry groups in which PRS have been evaluated by PRIMED publications.
+The entry for each PGS and ancestry category is the number of evaluations that have been done for that specific PGS in that specific ancestry category.
+Note that a PRS can be evaluated multiple times in the same sample set, e.g., with different covariates.
 
 ```{r}
 m = metrics %>%
@@ -303,7 +312,7 @@ m = metrics %>%
     samples=c("sampleset", "samples"),
   )
 # Add ancestry category
-m$ancestry_category = sapply(m$samples, get_samples_combined_ancestry_key)
+m$ancestry_category = sapply(m$samples, get_samples_combined_ancestry_key) %>% ordered(levels=names(ANCESTRY_LABELS))
 
 s = scores %>%
   hoist(record,
@@ -318,7 +327,7 @@ x <- m %>%
   mutate(n=as.character(n))
 
 x %>%
-  pivot_wider(names_from="ancestry_category", values_from="n", values_fill="--") %>%
+  pivot_wider(names_from="ancestry_category", values_from="n", values_fill="--", names_expand=TRUE) %>%
   kable() %>%
   kable_styling() %>%
   collapse_rows(columns = 1:2, valign = "top")
@@ -332,6 +341,7 @@ This table shows the list of publications that mapped to the PGS catalog and wer
 More information about each publication can be found on the [PRIMED consortium website](https://primedconsortium.org/publications/published).
 
 ```{r}
+# Consider adding the number of PRS developed, PRS evaluated, and traits for each publication.
 p = pubs %>%
   hoist(record,
     "pmid",
@@ -344,14 +354,4 @@ p = pubs %>%
 
 p %>%
   kable()
-
-
 ```
-
-XXX add table of publications.
-- author
-- title
-- pmid
-- pgpid
-- list of traits(?) only if not unwieldy
-- (or) number of prs developed and number of prs evaluated per pub
