@@ -33,12 +33,29 @@ pubs = tibble(record=read_json(file.path(params$publication_records_file)))
 ```
 
 ```{r function_definitions}
+add_trait_info <- function(x) {
+  x %>%
+    hoist(record,
+      trait_efo = "trait_efo"
+    ) %>%
+    unnest_longer(trait_efo) %>%
+    hoist(trait_efo,
+      trait="label",
+      trait_id="id"
+    ) %>%
+    mutate(trait=stringr::str_to_title(trait))
+}
+
 get_pgs_link <- function(pgs_id) {
   return(glue::glue("[{pgs_id}](https://www.pgscatalog.org/score/{pgs_id})"))
 }
 
 get_pgp_link <- function(pgp_id) {
   return(glue::glue("[{pgp_id}](https://www.pgscatalog.org/publications/{pgp_id})"))
+}
+
+get_efo_link <- function(trait_id, text=trait_id) {
+  return(glue::glue("[{text}](https://www.pgscatalog.org/trait/{trait_id})"))
 }
 ```
 
@@ -94,16 +111,17 @@ p = pubs %>%
 s = scores %>%
   hoist(record,
     pgs_id="id",
-    trait="trait_reported",
     pgp_id=c("publication", "id"),
-  )
+  ) %>%
+  add_trait_info()
 
 x <- s %>%
   left_join(p, by="pgs_id")
 
 x %>%
   mutate(pgs_id=get_pgs_link(pgs_id)) %>%
-  select(pgs_id, trait, `Developed by PRIMED`, `Evaluated in PRIMED`) %>%
+  mutate(trait=get_efo_link(trait_id, text=trait)) %>%
+  select(pgs_id, trait,`Developed by PRIMED`, `Evaluated in PRIMED`) %>%
   kable(align=c("l", "l", "c", "c"))
 ```
 
@@ -132,9 +150,9 @@ p = pubs %>%
 
 s = scores %>%
   hoist(record,
-    pgs_id="id",
-    trait="trait_reported"
-  )
+    pgs_id="id"
+  ) %>%
+  add_trait_info()
 
 m = metrics %>%
   hoist(record,
@@ -150,7 +168,7 @@ x <- p %>%
   left_join(m, by=c("pgp_id", "pgs_id", "type"))
 
 x %>%
-  group_by(Trait=trait) %>%
+  group_by(trait=trait, trait_id) %>%
   summarise(
     `Publications`=length(unique(pmid)),
     `PRS developed`=length(unique(pgs_id[type=="development"])),
@@ -158,6 +176,9 @@ x %>%
     `Sample sets`=length(unique(pss_id[type=="evaluation"])),
     `Evaluations`=length(pgs_id[type=="evaluation"]),
   ) %>%
+  ungroup() %>%
+  mutate(Trait=get_efo_link(trait_id, text=trait)) %>%
+  select(Trait, `Publications`, `PRS developed`, `PRS evaluated`, `Sample sets`, `Evaluations`) %>%
   kable()
 ```
 
@@ -316,10 +337,10 @@ p = pubs %>%
 
 s = scores %>% hoist(record,
     pgs_id="id",
-    trait="trait_reported",
     gwas=c("ancestry_distribution", "gwas", "dist"),
     dev=c("ancestry_distribution", "dev", "dist")
   ) %>%
+  add_trait_info() %>%
   pivot_longer(c(gwas, dev), names_to="stage", values_to="distrib") %>%
   unnest_longer("distrib") %>%
   mutate(
@@ -360,8 +381,8 @@ m$ancestry_category = sapply(m$samples, get_samples_combined_ancestry_key) %>% o
 s = scores %>%
   hoist(record,
     pgs_id="id",
-    trait="trait_reported"
-  )
+  ) %>%
+  add_trait_info()
 
 x <- m %>%
   left_join(s, by = "pgs_id") %>%
