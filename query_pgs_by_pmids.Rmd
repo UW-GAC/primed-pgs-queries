@@ -54,6 +54,10 @@ get_pgp_link <- function(pgp_id) {
   return(glue::glue("[{pgp_id}](https://www.pgscatalog.org/publications/{pgp_id})"))
 }
 
+get_pubmed_link <- function(pmid) {
+  return(glue::glue("[{pmid}](https://pubmed.ncbi.nlm.nih.gov/{pmid})"))
+}
+
 get_efo_link <- function(trait_id, text=trait_id) {
   return(glue::glue("[{text}](https://www.pgscatalog.org/trait/{trait_id})"))
 }
@@ -417,6 +421,7 @@ p = pubs %>%
   separate(authors, into=c("First author"), extra="drop", sep=",")
 
 p %>%
+  mutate(pmid=get_pubmed_link(pmid)) %>%
   mutate(pgp_id=get_pgp_link(pgp_id)) %>%
   kable()
 ```
