@@ -5,6 +5,7 @@ date: "`r lubridate::today()`"
 format:
   html:
     toc: true
+    self_contained: yes
 execute:
   echo: false
 output:
