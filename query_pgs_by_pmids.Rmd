@@ -30,10 +30,7 @@ knitr::opts_chunk$set(echo=FALSE)
 scores = tibble(record=read_json(file.path(params$score_records_file)))
 metrics = tibble(record=read_json(file.path(params$metrics_records_file)))
 pubs = tibble(record=read_json(file.path(params$publication_records_file)))
-
-#mapping_results = read_tsv(params$mapping_results_file, show_col_types=FALSE)
 ```
-
 
 
 # Summary
@@ -62,6 +59,42 @@ p %>%
   ) %>%
   pivot_longer(everything(), names_to="Summary", values_to="N") %>%
   kable()
+```
+
+# List of PRS in PRIMED
+
+This table shows the records of PRS from the PGS catalog that have been either developed or evaluated in PRIMED publications.
+The columns "Developed by PRIMED" and "Evaluated in PRIMED" indicate whether the PRS was developed or evaluated in PRIMED publications, respectively.
+
+```{r}
+p = pubs %>%
+  hoist(record,
+    pgp_id="id",
+    "pmid",
+    "associated_pgs_ids"
+  ) %>%
+  unnest_wider(associated_pgs_ids) %>%
+  pivot_longer(c(development, evaluation), names_to="type", values_to="pgs_id") %>%
+  unnest_longer(pgs_id) %>%
+  group_by(pgs_id) %>%
+  summarise(
+    `Developed by PRIMED`=ifelse(sum(type == "development") > 0, "x", ""),
+    `Evaluated in PRIMED`=ifelse(sum(type == "evaluation") > 0, "x", "")
+)
+
+s = scores %>%
+  hoist(record,
+    pgs_id="id",
+    trait="trait_reported",
+    pgp_id=c("publication", "id"),
+  )
+
+x <- s %>%
+  left_join(p, by="pgs_id")
+
+x %>%
+  select(pgs_id, trait, `Developed by PRIMED`, `Evaluated in PRIMED`) %>%
+  kable(align=c("l", "l", "c", "c"))
 ```
 
 # Counts by trait
@@ -106,7 +139,6 @@ x <- p %>%
   left_join(s, by ="pgs_id") %>%
   left_join(m, by=c("pgp_id", "pgs_id", "type"))
 
-
 x %>%
   group_by(Trait=trait) %>%
   summarise(
@@ -116,7 +148,8 @@ x %>%
     `Sample sets`=length(unique(pss_id[type=="evaluation"])),
     `Evaluations`=length(pgs_id[type=="evaluation"]),
   ) %>%
-  kable()
+  kable(table.attr = 'data-quarto-disable-processing="true"') %>%
+  kableExtra::kable_styling(bootstrap_options = c("basic", "hover"), full_width = FALSE)
 ```
 
 
