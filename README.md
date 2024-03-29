@@ -19,7 +19,7 @@ python3 map_pmids.py --pmid-file test_input.csv --outfile test_output.tsv
 Once you have the mapping output file, you can generate a report about the matches.
 
 ```
-quarto render mapping_report.qmd -P mapping_results_file:test_output.tsv
+quarto render mapping_report.Rmd -P mapping_results_file:test_output.tsv
 ```
 
 A [WDL workflow](https://dockstore.org/workflows/github.com/UW-GAC/anvil-util-workflows/backup_data_tables:main?tab=info) is also provided on Dockstore and as a .WDL file.

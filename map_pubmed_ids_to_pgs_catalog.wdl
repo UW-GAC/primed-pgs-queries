@@ -63,8 +63,8 @@ task run_pubs_report {
         File publication_records_file
     }
     command <<<
-        cp /usr/local/primed-pgs-queries/query_pgs_by_pmids.qmd ./
-        R -e "rmarkdown::render('query_pgs_by_pmids.qmd', params=list(score_records_file='~{score_records_file}', metrics_records_file='~{metrics_records_file}', publication_records_file='~{publication_records_file}'))"
+        cp /usr/local/primed-pgs-queries/query_pgs_by_pmids.Rmd ./
+        R -e "rmarkdown::render('query_pgs_by_pmids.Rmd', params=list(score_records_file='~{score_records_file}', metrics_records_file='~{metrics_records_file}', publication_records_file='~{publication_records_file}'))"
     >>>
     output {
         File report_file = "query_pgs_by_pmids.html"
