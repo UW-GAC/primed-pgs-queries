@@ -23,7 +23,7 @@ library(jsonlite)
 library(kableExtra)
 
 options(knitr.kable.NA = '--')
-knitr::opts_chunk$set(echo=FALSE)
+knitr::opts_chunk$set(echo=FALSE, message=FALSE)
 ```
 
 ```{r}
