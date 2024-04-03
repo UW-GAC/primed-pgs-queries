@@ -8,18 +8,26 @@ This repository contains PRIMED queries of the [PGS Catalog](https://www.pgscata
 
 The `map_pmids.py` python script can be used to map a list of PubmedIDs to the PGS catalog.
 The script requires a csv file containing a list of PubmedIDs (one per line).
-The script will output a tsv file containing the PubmedIDs and the corresponding PGS PGP_IDs, PGS_IDs and PGS type (development or evaluation).
+The script will output three json files in the specified output directory (`--outdir`), which contain the PGS catalog information for the records:
+- `pubs_records.json`: A list of publications that have been mapped to the input PubmedIDs.
+- `score_records.json`: A list of PGS scores that have been mapped to the input PubmedIDs.
+- `metrics_records.json`: A list of PGS metrics that have been mapped to the input PubmedIDs.
 
 The script can be run using the following command:
 
 ```
-python3 map_pmids.py --pmid-file test_input.csv --outfile test_output.tsv
+python3 query_pgs_by_pmids.py --pmid-file test_input.csv --outdir test_output
 ```
 
-Once you have the mapping output file, you can generate a report about the matches.
+Once you have the mapping output, you can generate a report about the matches in R.
 
-```
-quarto render mapping_report.Rmd -P mapping_results_file:test_output.tsv
+```{r}
+input <- list(
+    "score_records_file" = "test_output/score_records.json",
+    "metrics_records_file" = "test_output/metrics_records.json",
+    "publication_records_file" = "test_output/pubs_records.json"
+)
+rmarkdown::render("query_pgs_by_pmids.Rmd", params=input)
 ```
 
 A [WDL workflow](https://dockstore.org/workflows/github.com/UW-GAC/anvil-util-workflows/backup_data_tables:main?tab=info) is also provided on Dockstore and as a .WDL file.
