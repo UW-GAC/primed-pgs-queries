@@ -8,4 +8,7 @@ RUN cd /usr/local && \
 # Is this a good idea?
 RUN pip install -r /usr/local/primed-pgs-queries/requirements/requirements.in
 
+# Install additional R packages
+RUN R -e "install.packages(c('kableExtra', 'rmdformats', 'treemapify'))"
+
 CMD /bin/sh

@@ -2,21 +2,26 @@ version 1.0
 
 workflow map_pubmed_ids_to_pgs_catalog {
     input {
-        File pubmed_id_file
+        String pmid_url = "https://primedconsortium.org/publications/published/export?page&_format=csv"
         String pmid_column = "PMID"
     }
-    call map_ids {
+    call query_pubs {
         input:
-            pubmed_id_file=pubmed_id_file,
+            pmid_url=pmid_url,
             pmid_column=pmid_column
     }
-    call report {
+    call run_pubs_report {
         input:
-            mapping_results_file=map_ids.mapping_results_file
+            score_records_file=query_pubs.score_records_file,
+            metrics_records_file=query_pubs.metrics_records_file,
+            publication_records_file=query_pubs.publication_records_file
     }
     output {
-        File mapping_results_file = map_ids.mapping_results_file
-        File mapping_report = report.report_file
+        #File mapping_results_file = map_pubs.mapping_results_file
+        File score_records_file = query_pubs.score_records_file
+        File metrics_records_file = query_pubs.metrics_records_file
+        File publication_records_file = query_pubs.publication_records_file
+        File pubs_report = run_pubs_report.report_file
     }
     meta {
         author: "Adrienne Stilp"
@@ -26,40 +31,45 @@ workflow map_pubmed_ids_to_pgs_catalog {
 }
 
 
-task map_ids {
+task query_pubs {
     input {
-        File pubmed_id_file
+        String pmid_url
         String pmid_column = "PMID"
     }
     command <<<
-        python3 /usr/local/primed-pgs-queries/map_pmids.py \
-            --pmid-file ~{pubmed_id_file} \
+        # Query PGS catalog and save output.
+        python3 /usr/local/primed-pgs-queries/query_pgs_by_pmids.py \
+            --pmid-url "~{pmid_url}" \
             --pmid-header ~{pmid_column} \
-            --outfile mapping_results.tsv
+            --outdir "output"
     >>>
     output {
-        File mapping_results_file = "mapping_results.tsv"
+        #File mapping_results_file = "mapping_results.tsv"
+        File score_records_file = "output/score_records.json"
+        File metrics_records_file = "output/metrics_records.json"
+        File publication_records_file = "output/pubs_records.json"
     }
     runtime {
         # Pull from DockerHub
-        docker: "uwgac/primed-pgs-queries:0.2.0"
+        docker: "uwgac/primed-pgs-queries:0.3.0"
     }
 }
 
 
-task report {
+task run_pubs_report {
     input {
-        File mapping_results_file
+        File score_records_file
+        File metrics_records_file
+        File publication_records_file
     }
     command <<<
-        R -e "rmarkdown::render('/usr/local/primed-pgs-queries/mapping_report.qmd', params=list(mapping_results_file='~{mapping_results_file}'))"
-        cp /usr/local/primed-pgs-queries/mapping_report.html ./
+        cp /usr/local/primed-pgs-queries/query_pgs_by_pmids.Rmd ./
+        R -e "rmarkdown::render('query_pgs_by_pmids.Rmd', params=list(score_records_file='~{score_records_file}', metrics_records_file='~{metrics_records_file}', publication_records_file='~{publication_records_file}'))"
     >>>
     output {
-        File report_file = "mapping_report.html"
+        File report_file = "query_pgs_by_pmids.html"
     }
     runtime {
-        # Pull from DockerHub
-        docker: "uwgac/primed-pgs-queries:0.2.0"
+        docker: "uwgac/primed-pgs-queries:0.3.0"
     }
 }

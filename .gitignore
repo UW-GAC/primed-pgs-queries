@@ -163,3 +163,8 @@ cython_debug/
 *.csv
 *.tsv
 *.html
+*.json
+
+
+# Other
+tmp*

@@ -1,0 +1,12 @@
+from __future__ import absolute_import
+
+# flake8: noqa
+
+# import apis into api package
+from pgs_catalog_client.api.other_endpoints_api import OtherEndpointsApi
+from pgs_catalog_client.api.performance_metric_endpoints_api import PerformanceMetricEndpointsApi
+from pgs_catalog_client.api.publication_endpoints_api import PublicationEndpointsApi
+from pgs_catalog_client.api.release_endpoints_api import ReleaseEndpointsApi
+from pgs_catalog_client.api.sample_endpoints_api import SampleEndpointsApi
+from pgs_catalog_client.api.score_endpoints_api import ScoreEndpointsApi
+from pgs_catalog_client.api.trait_endpoints_api import TraitEndpointsApi

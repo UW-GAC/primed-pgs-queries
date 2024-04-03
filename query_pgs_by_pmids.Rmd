@@ -1,0 +1,480 @@
+---
+title: "PRIMED Publications in PGS catalog"
+author: "PRIMED CC"
+date: "`r lubridate::today()`"
+format:
+  html:
+    toc: true
+    self_contained: yes
+execute:
+  echo: false
+output:
+  rmdformats::html_clean:
+    fig_width: 10
+    fig_height: 4
+    thumbnails: false
+params:
+    score_records_file: NA
+    metrics_records_file: NA
+    publication_records_file: NA
+---
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(jsonlite)
+library(kableExtra)
+library(treemapify)
+library(glue)
+
+options(knitr.kable.NA = '--')
+knitr::opts_chunk$set(echo=FALSE, message=FALSE)
+```
+
+```{r}
+scores = tibble(record=read_json(file.path(params$score_records_file)))
+metrics = tibble(record=read_json(file.path(params$metrics_records_file)))
+pubs = tibble(record=read_json(file.path(params$publication_records_file)))
+```
+
+```{r function_definitions}
+add_trait_info <- function(x) {
+  x %>%
+    hoist(record,
+      trait_efo = "trait_efo"
+    ) %>%
+    unnest_longer(trait_efo) %>%
+    hoist(trait_efo,
+      trait="label",
+      trait_id="id"
+    ) %>%
+    mutate(trait=stringr::str_to_title(trait))
+}
+
+get_pgs_link <- function(pgs_id) {
+  return(glue::glue("[{pgs_id}](https://www.pgscatalog.org/score/{pgs_id})"))
+}
+
+get_pgp_link <- function(pgp_id) {
+  return(glue::glue("[{pgp_id}](https://www.pgscatalog.org/publications/{pgp_id})"))
+}
+
+get_pubmed_link <- function(pmid) {
+  return(glue::glue("[{pmid}](https://pubmed.ncbi.nlm.nih.gov/{pmid})"))
+}
+
+get_efo_link <- function(trait_id, text=trait_id) {
+  return(glue::glue("[{text}](https://www.pgscatalog.org/trait/{trait_id})"))
+}
+```
+
+# Summary
+
+This table shows the number of unique publications based on [PubmedID submitted to the PRIMED website](https://primedconsortium.org/publications/published) that have records in PGS Catalog; the number of PRS developed in these publications; and the number of unique PRS evaluated in these publications.
+A single publication can include both development and evaluation of a PRS.
+
+```{r}
+s = scores %>% hoist(record,
+    pgs_id="id",
+  )
+p = pubs %>%
+  hoist(record,
+    pgp_id="id",
+    "pmid",
+    "associated_pgs_ids"
+  ) %>%
+  unnest_wider(associated_pgs_ids) %>%
+  pivot_longer(c(development, evaluation), names_to="type", values_to="pgs_id") %>%
+  unnest_longer(pgs_id)
+
+p %>%
+  summarise(
+    `Publications`=length(unique(pgp_id)),
+    `PRS developed`=length(unique(pgs_id[type=="development"])),
+    `PRS evaluated`=length(unique(pgs_id[type=="evaluation"])),
+  ) %>%
+  pivot_longer(everything(), names_to="Summary", values_to="N") %>%
+  kable()
+```
+
+# List of PRS in PRIMED
+
+This table shows the records of PRS from the PGS Catalog that have been either developed or evaluated in PRIMED publications.
+The columns "Developed by PRIMED" and "Evaluated in PRIMED" indicate whether the PRS was developed or evaluated in PRIMED publications, respectively.
+
+```{r}
+p = pubs %>%
+  hoist(record,
+    pgp_id="id",
+    "pmid",
+    "associated_pgs_ids"
+  ) %>%
+  unnest_wider(associated_pgs_ids) %>%
+  pivot_longer(c(development, evaluation), names_to="type", values_to="pgs_id") %>%
+  unnest_longer(pgs_id) %>%
+  group_by(pgs_id) %>%
+  summarise(
+    `Developed by PRIMED`=ifelse(sum(type == "development") > 0, "x", ""),
+    `Evaluated in PRIMED`=ifelse(sum(type == "evaluation") > 0, "x", "")
+)
+
+s = scores %>%
+  hoist(record,
+    pgs_id="id",
+    pgp_id=c("publication", "id"),
+  ) %>%
+  add_trait_info()
+
+x <- s %>%
+  left_join(p, by="pgs_id")
+
+x %>%
+  mutate(pgs_id=get_pgs_link(pgs_id)) %>%
+  mutate(trait=get_efo_link(trait_id, text=trait)) %>%
+  select(pgs_id, trait,`Developed by PRIMED`, `Evaluated in PRIMED`) %>%
+  kable(align=c("l", "l", "c", "c"))
+```
+
+# Counts by trait
+
+This table shows the number of unique publications, the number of unique PRS developed, and the number of unique PRS evaluated for each trait. The table counts results only from PRIMED publications that have a record in the PGS Catalog.
+
+The columns in this table represent the following counts:
+
+- Publications: The number of PRIMED publications that developed or evaluated PRS for the listed trait
+- PRS developed: The number of unique PRS developed in PRIMED publications for this trait.
+- PRS evaluated: The number of unique PRS evaluated in PRIMED publications for this trait.
+- Sample sets: The number of unique sample sets used for evaluation of PRS for this trait by PRIMED publications.
+- Evaluations: The total number of evaluations for this trait in PRIMED publications. Note that this count can include multiple evaluations of the same PRS in the same sample set, for example with different covariates.
+
+```{r}
+p = pubs %>%
+  hoist(record,
+    pgp_id="id",
+    "pmid",
+    "associated_pgs_ids"
+  ) %>%
+  unnest_wider(associated_pgs_ids) %>%
+  pivot_longer(c(development, evaluation), names_to="type", values_to="pgs_id") %>%
+  unnest_longer(pgs_id)
+
+s = scores %>%
+  hoist(record,
+    pgs_id="id"
+  ) %>%
+  add_trait_info()
+
+m = metrics %>%
+  hoist(record,
+    ppm_id="id",
+    pgs_id="associated_pgs_id",
+    pgp_id=c("publication", "id"),
+    pss_id=c("sampleset", "id")
+  ) %>%
+  mutate(type="evaluation")
+
+x <- p %>%
+  left_join(s, by ="pgs_id") %>%
+  left_join(m, by=c("pgp_id", "pgs_id", "type"))
+
+x %>%
+  group_by(trait=trait, trait_id) %>%
+  summarise(
+    `Publications`=length(unique(pmid)),
+    `PRS developed`=length(unique(pgs_id[type=="development"])),
+    `PRS evaluated`=length(unique(pgs_id[type=="evaluation"])),
+    `Sample sets`=length(unique(pss_id[type=="evaluation"])),
+    `Evaluations`=length(pgs_id[type=="evaluation"]),
+  ) %>%
+  ungroup() %>%
+  mutate(Trait=get_efo_link(trait_id, text=trait)) %>%
+  select(Trait, `Publications`, `PRS developed`, `PRS evaluated`, `Sample sets`, `Evaluations`) %>%
+  kable()
+```
+
+
+# Ancestry information
+
+```{r}
+# Pulling ancestry info from PGS Catalog source code.
+
+# https://github.com/PGScatalog/PGS_Catalog/blob/af8cc04817c976bbb666bbfd73c3ba127fca1911/pgs_web/constants.py#L84
+ANCESTRY_MAPPINGS = c(
+  'Aboriginal Australian' = 'OTH',
+  'African American or Afro-Caribbean' = 'AFR',
+  'African unspecified'  = 'AFR',
+  'Asian unspecified' = 'ASN',
+  'Central Asian' = 'ASN',
+  'East Asian' = 'EAS',
+  'European' = 'EUR',
+  'Greater Middle Eastern (Middle Eastern, North African or Persian)' = 'GME',
+  'Hispanic or Latin American' = 'AMR',
+  'Native American' = 'OTH',
+  'Not reported' = 'NR',
+  'NR' = 'NR', # Not reported
+  'Oceanian' = 'OTH',
+  'Other' = 'OTH',
+  'Other admixed ancestry' = 'OTH',
+  'South Asian' = 'SAS',
+  'South East Asian' = 'ASN',
+  'Sub-Saharan African' = 'AFR',
+  'Sub-Saharan African, African American or Afro-Caribbean' = 'AFR'
+)
+
+# https://github.com/PGScatalog/PGS_Catalog/blob/af8cc04817c976bbb666bbfd73c3ba127fca1911/pgs_web/constants.py#L106C1-L119C1
+ANCESTRY_LABELS = c(
+    'MAE' = 'Multi-ancestry (including European)',
+    'MAO' = 'Multi-ancestry (excluding European)',
+    'AFR' = 'African',
+    'EAS' = 'East Asian',
+    'SAS' = 'South Asian',
+    'ASN' = 'Additional Asian Ancestries',
+    'EUR' = 'European',
+    'GME' = 'Greater Middle Eastern',
+    'AMR' = 'Hispanic or Latin American',
+    'OTH' = 'Additional Diverse Ancestries',
+    'NR'  = 'Not Reported'
+)
+
+# Replicating samples_combined_ancestry_key from PRS Catalog:
+
+# https://github.com/PGScatalog/PGS_Catalog/blob/af8cc04817c976bbb666bbfd73c3ba127fca1911/catalog/models.py#L820
+# def get_ancestry_key(self,anc):
+    # anc_key = 'OTH'
+    # if anc in constants.ANCESTRY_MAPPINGS.keys():
+    #     anc_key = constants.ANCESTRY_MAPPINGS[anc]
+    # elif ',' in anc:
+    #     if 'European' in anc:
+    #         anc_key = 'MAE'
+    #     else:
+    #         anc_key = 'MAO'
+    # return anc_key
+
+get_ancestry_key <- function(anc) {
+  anc_key = "OTH"
+  if (anc %in% names(ANCESTRY_MAPPINGS)) {
+    anc_key = ANCESTRY_MAPPINGS[anc]
+  } else if ("," %in% anc) {
+    if ("European" %in% anc) {
+      anc_key = "MAE"
+    } else {
+      anc_key = "MAO"
+    }
+  }
+  return(unname(anc_key))
+}
+
+
+# https://github.com/PGScatalog/PGS_Catalog/blob/af8cc04817c976bbb666bbfd73c3ba127fca1911/catalog/models.py#L776
+# def samples_combined_ancestry_key(self):
+#     '''
+#     Fetch the ancestry of each sample and group them into multi-ancestry
+#     if there are more than one ancestry categories.
+#     Returns the corresponding ancestry key (2-3 letters).
+#     '''
+#     ancestry_list = []
+#     main_ancestry_key = ''
+#     for sample in self.samples.all():
+#         ancestry = sample.ancestry_broad.strip()
+#         ancestry_key = self.get_ancestry_key(ancestry)
+#         if ancestry_key and ancestry_key not in ancestry_list:
+#             ancestry_list.append(ancestry_key)
+
+#     if len(ancestry_list) > 1:
+#         has_eur = 0
+#         for anc in ancestry_list:
+#             if anc == 'EUR':
+#                 has_eur = 1
+#         if has_eur == 1:
+#             main_ancestry_key = 'MAE'
+#         else:
+#             main_ancestry_key = 'MAO'
+#     else:
+#         main_ancestry_key = ancestry_list[0]
+#     return main_ancestry_key
+
+get_samples_combined_ancestry_key <- function(samples) {
+  # Extract the ancestries associated with the sample set.
+  ancestry_list = c()
+  main_ancestry_key = ""
+  for (sample in samples) {
+    ancestry_list = c(ancestry_list, get_ancestry_key(sample$ancestry_broad))
+  }
+  # Map to PGS codes.
+  if (length(ancestry_list) > 1) {
+    if ("EUR" %in% ancestry_list) {
+      main_ancestry_key = "MAE"
+    } else {
+      main_ancestry_key = "MAO"
+    }
+  } else {
+    main_ancestry_key = ancestry_list
+  }
+  return(main_ancestry_key)
+}
+```
+
+## Key
+
+This table shows the ancestry groups as defined by PGS Catalog that will be used later in this document.
+
+```{r}
+enframe(ANCESTRY_LABELS, name="Abbreviation", value="Ancestry") %>% kable()
+```
+
+
+Please see the [PGS Catalog Ancestry documentation](https://www.pgscatalog.org/docs/ancestry/#anc_dist) for more information.
+
+## Ancestry groups used to develop PRS in PRIMED publications
+
+This table shows the ancestry groups in which PRS have been developed by PRIMED publications.
+"Stage" represents the stage at which that ancestry group was included: "gwas" means the samples in which the summary statistics used to derive the PRS were created; and "dev" means the samples used to train the PRS model.
+The entry for each PGS and ancestry category is the percentage of samples from that ancestry category that contributed.
+
+
+```{r}
+p = pubs %>%
+  hoist(record,
+    pgp_id="id",
+    "pmid",
+    "associated_pgs_ids"
+  ) %>%
+  unnest_wider(associated_pgs_ids) %>%
+  pivot_longer(c(development, evaluation), names_to="type", values_to="pgs_id") %>%
+  unnest_longer(pgs_id) %>%
+  filter(type == "development") %>%
+  select(-type)
+
+s = scores %>% hoist(record,
+    pgs_id="id",
+    gwas=c("ancestry_distribution", "gwas", "dist"),
+    dev=c("ancestry_distribution", "dev", "dist")
+  ) %>%
+  add_trait_info() %>%
+  pivot_longer(c(gwas, dev), names_to="stage", values_to="distrib") %>%
+  unnest_longer("distrib") %>%
+  mutate(
+    distrib=glue::glue("{distrib}%"),
+    distrib_id = ordered(distrib_id, levels=names(ANCESTRY_LABELS))
+  ) %>%
+  pivot_wider(names_from="distrib_id", values_from="distrib", names_expand=TRUE)
+
+x <- p %>% left_join(s, by="pgs_id") %>%
+  select(trait, pgs_id, stage, all_of(names(ANCESTRY_LABELS))) %>%
+  arrange(trait, pgs_id, desc(stage))
+
+x %>%
+  kable() %>%
+  kable_styling() %>%
+  collapse_rows(columns = 1:2, valign = "top")
+```
+
+
+## Ancestry groups used for evaluating PRS in PRIMED publications
+
+This table shows the ancestry groups in which PRS have been evaluated by PRIMED publications.
+The entry for each PGS and ancestry category is the number of evaluations that have been done for that specific PGS in that specific ancestry category.
+Note that a PRS can be evaluated multiple times in the same sample set, e.g., with different covariates.
+
+```{r}
+m = metrics %>%
+  hoist(record,
+    ppm_id="id",
+    pgs_id="associated_pgs_id",
+    pgp_id=c("publication", "id"),
+    pmid=c("publication", "pmid"),
+    samples=c("sampleset", "samples"),
+  )
+# Add ancestry category
+m$ancestry_category = sapply(m$samples, get_samples_combined_ancestry_key) %>% ordered(levels=names(ANCESTRY_LABELS))
+
+s = scores %>%
+  hoist(record,
+    pgs_id="id",
+  ) %>%
+  add_trait_info()
+
+x <- m %>%
+  left_join(s, by = "pgs_id") %>%
+  group_by(trait, pgs_id, ancestry_category) %>%
+  count() %>%
+  mutate(n=as.character(n))
+
+# Get a totals column
+totals <- x %>%
+  group_by(ancestry_category) %>%
+  count()
+
+totals_wide <- totals %>%
+  mutate(trait="Total", pgs_id="") %>%
+  mutate(n=as.character(n)) %>%
+  pivot_wider(names_from="ancestry_category", values_from="n", values_fill="--", names_expand=TRUE)
+
+# Final table
+z <- x %>%
+  pivot_wider(names_from="ancestry_category", values_from="n", values_fill="--", names_expand=TRUE) %>%
+  bind_rows(totals_wide)
+
+z %>%
+  kable() %>%
+  kable_styling() %>%
+  collapse_rows(columns = 1:2, valign = "top") %>%
+  row_spec(which(z$trait == "Total"), bold=TRUE)
+```
+
+The following plot shows the relative number of evaluations for each ancestry category from the "Total" row in the table above.
+
+```{r, out.width="90%", fig.align="center"}
+cmap = c(
+    "EUR" = "grey80",
+    "NR" = "grey60",
+    'MAO' = '',
+    'AFR' = '',
+    'EAS' = '',
+    'ASN' = '',
+    'SAS' = '',
+    'AMR' = '',
+    'OTH' = '',
+    'MAE' = '',
+    'GME' = ''
+)
+# fill in the rest with colorbrewer Dark2 palette
+cmap[3:length(cmap)] = RColorBrewer::brewer.pal(8, "Dark2")[1:(length(cmap)-2)]
+
+# Tree map plot
+p <- totals %>%
+  left_join(enframe(ANCESTRY_LABELS, name="ancestry_category")) %>%
+  mutate(group=glue::glue("{value} ({ancestry_category})")) %>%
+  mutate(color=cmap[ancestry_category])
+ggplot(p, aes(
+  area = n,
+  fill = group,
+  label=glue::glue("{ancestry_category} ({n})")
+)) +
+  geom_treemap() +
+  scale_fill_manual(values=setNames(p$color, p$group)) +
+  geom_treemap_text(place="centre")
+```
+
+# Publications
+
+This table shows the list of publications that mapped to the PGS catalog and were used for reporting in this document.
+More information about each publication can be found on the [PRIMED consortium website](https://primedconsortium.org/publications/published).
+
+```{r}
+# Consider adding the number of PRS developed, PRS evaluated, and traits for each publication.
+p = pubs %>%
+  hoist(record,
+    "pmid",
+    pgp_id="id",
+    Title="title",
+    "authors"
+  ) %>%
+  select(-record) %>%
+  separate(authors, into=c("First author"), extra="drop", sep=",")
+
+p %>%
+  mutate(pmid=get_pubmed_link(pmid)) %>%
+  mutate(pgp_id=get_pgp_link(pgp_id)) %>%
+  kable()
+```
