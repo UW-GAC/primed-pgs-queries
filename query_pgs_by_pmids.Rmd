@@ -65,7 +65,8 @@ get_efo_link <- function(trait_id, text=trait_id) {
 
 # Summary
 
-This table shows the number of unique publications, the number of PRS developed in PRIMED publication, and the number of unique PRS evaluated by PRIMED publications. A single publication can include both development and evaluation of a PRS.
+This table shows the number of unique publications based on [PubmedID submitted to the PRIMED website](https://primedconsortium.org/publications/published) that have records in PGS Catalog; the number of PRS developed in these publications; and the number of unique PRS evaluated in these publications.
+A single publication can include both development and evaluation of a PRS.
 
 ```{r}
 s = scores %>% hoist(record,
@@ -93,7 +94,7 @@ p %>%
 
 # List of PRS in PRIMED
 
-This table shows the records of PRS from the PGS catalog that have been either developed or evaluated in PRIMED publications.
+This table shows the records of PRS from the PGS Catalog that have been either developed or evaluated in PRIMED publications.
 The columns "Developed by PRIMED" and "Evaluated in PRIMED" indicate whether the PRS was developed or evaluated in PRIMED publications, respectively.
 
 ```{r}
@@ -131,9 +132,9 @@ x %>%
 
 # Counts by trait
 
-This table shows the number of unique publications, the number of unique PRS developed, the number of and the number of unique PRS evaluated for each trait. The numbers count results from PRIMED publications only.
+This table shows the number of unique publications, the number of unique PRS developed, and the number of unique PRS evaluated for each trait. The table counts results only from PRIMED publications that have a record in the PGS Catalog.
 
-The columns in this table represent the following numbers:
+The columns in this table represent the following counts:
 
 - Publications: The number of PRIMED publications that developed or evaluated PRS for the listed trait
 - PRS developed: The number of unique PRS developed in PRIMED publications for this trait.
@@ -310,7 +311,7 @@ get_samples_combined_ancestry_key <- function(samples) {
 
 ## Key
 
-This table shows the ancestry groups as defined by PRS Catalog that will be used later in this document.
+This table shows the ancestry groups as defined by PGS Catalog that will be used later in this document.
 
 ```{r}
 enframe(ANCESTRY_LABELS, name="Abbreviation", value="Ancestry") %>% kable()
@@ -364,7 +365,7 @@ x %>%
 ```
 
 
-## Ancestry groups used for evaluation by PRIMED publications
+## Ancestry groups used for evaluating PRS in PRIMED publications
 
 This table shows the ancestry groups in which PRS have been evaluated by PRIMED publications.
 The entry for each PGS and ancestry category is the number of evaluations that have been done for that specific PGS in that specific ancestry category.
