@@ -395,11 +395,23 @@ x <- m %>%
   count() %>%
   mutate(n=as.character(n))
 
-x %>%
+# Get a totals column
+totals <- x %>%
+  group_by(ancestry_category) %>%
+  count() %>%
+  mutate(n=as.character(n)) %>%
+  mutate(trait="Total", pgs_id="") %>%
+  pivot_wider(names_from="ancestry_category", values_from="n", values_fill="--", names_expand=TRUE)
+
+x <- x %>%
   pivot_wider(names_from="ancestry_category", values_from="n", values_fill="--", names_expand=TRUE) %>%
+  bind_rows(totals)
+
+x %>%
   kable() %>%
   kable_styling() %>%
-  collapse_rows(columns = 1:2, valign = "top")
+  collapse_rows(columns = 1:2, valign = "top") %>%
+  row_spec(which(x$trait == "Total"), bold=TRUE)
 ```
 
 
