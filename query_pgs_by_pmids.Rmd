@@ -422,7 +422,7 @@ z %>%
   row_spec(which(z$trait == "Total"), bold=TRUE)
 ```
 
-The following plot shows the relative number of evaluations for each ancestry category from the "Total" row int he table above.
+The following plot shows the relative number of evaluations for each ancestry category from the "Total" row in the table above.
 
 ```{r, out.width="90%", fig.align="center"}
 cmap = c(
