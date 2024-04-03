@@ -9,7 +9,10 @@ format:
 execute:
   echo: false
 output:
-  rmdformats::html_clean
+  rmdformats::html_clean:
+    fig_width: 10
+    fig_height: 4
+    thumbnails: false
 params:
     score_records_file: NA
     metrics_records_file: NA
@@ -21,6 +24,8 @@ library(tidyverse)
 library(knitr)
 library(jsonlite)
 library(kableExtra)
+library(treemapify)
+library(glue)
 
 options(knitr.kable.NA = '--')
 knitr::opts_chunk$set(echo=FALSE, message=FALSE)
@@ -398,23 +403,58 @@ x <- m %>%
 # Get a totals column
 totals <- x %>%
   group_by(ancestry_category) %>%
-  count() %>%
-  mutate(n=as.character(n)) %>%
+  count()
+
+totals_wide <- totals %>%
   mutate(trait="Total", pgs_id="") %>%
+  mutate(n=as.character(n)) %>%
   pivot_wider(names_from="ancestry_category", values_from="n", values_fill="--", names_expand=TRUE)
 
-x <- x %>%
+# Final table
+z <- x %>%
   pivot_wider(names_from="ancestry_category", values_from="n", values_fill="--", names_expand=TRUE) %>%
-  bind_rows(totals)
+  bind_rows(totals_wide)
 
-x %>%
+z %>%
   kable() %>%
   kable_styling() %>%
   collapse_rows(columns = 1:2, valign = "top") %>%
-  row_spec(which(x$trait == "Total"), bold=TRUE)
+  row_spec(which(z$trait == "Total"), bold=TRUE)
 ```
 
+The following plot shows the relative number of evaluations for each ancestry category from the "Total" row int he table above.
 
+```{r, out.width="90%", fig.align="center"}
+cmap = c(
+    "EUR" = "grey80",
+    "NR" = "grey60",
+    'MAO' = '',
+    'AFR' = '',
+    'EAS' = '',
+    'ASN' = '',
+    'SAS' = '',
+    'AMR' = '',
+    'OTH' = '',
+    'MAE' = '',
+    'GME' = ''
+)
+# fill in the rest with colorbrewer Dark2 palette
+cmap[3:length(cmap)] = RColorBrewer::brewer.pal(8, "Dark2")[1:(length(cmap)-2)]
+
+# Tree map plot
+p <- totals %>%
+  left_join(enframe(ANCESTRY_LABELS, name="ancestry_category")) %>%
+  mutate(group=glue::glue("{value} ({ancestry_category})")) %>%
+  mutate(color=cmap[ancestry_category])
+ggplot(p, aes(
+  area = n,
+  fill = group,
+  label=glue::glue("{ancestry_category} ({n})")
+)) +
+  geom_treemap() +
+  scale_fill_manual(values=setNames(p$color, p$group)) +
+  geom_treemap_text(place="centre")
+```
 
 # Publications
 

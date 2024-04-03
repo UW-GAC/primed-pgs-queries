@@ -9,6 +9,6 @@ RUN cd /usr/local && \
 RUN pip install -r /usr/local/primed-pgs-queries/requirements/requirements.in
 
 # Install additional R packages
-RUN R -e "install.packages(c('kableExtra', 'rmdformats'))"
+RUN R -e "install.packages(c('kableExtra', 'rmdformats', 'treemapify'))"
 
 CMD /bin/sh
