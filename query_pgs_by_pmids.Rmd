@@ -71,7 +71,7 @@ get_efo_link <- function(trait_id, text=trait_id) {
 
 # Summary
 
-This table shows the number of unique publications based on [PubmedID submitted to the PRIMED website](https://primedconsortium.org/publications/published) that have records in PGS Catalog; the number of PRS developed in these publications; and the number of unique PRS evaluated in these publications.
+This table shows the number of unique publications based on [PubmedID submitted to the PRIMED website](https://primedconsortium.org/publications/published) that have records in [PGS Catalog](https://www.pgscatalog.org/); the number of PRS developed in these publications; and the number of unique PRS evaluated in these publications.
 A single publication can include both development and evaluation of a PRS.
 
 ```{r}
