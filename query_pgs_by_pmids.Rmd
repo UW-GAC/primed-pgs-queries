@@ -9,10 +9,11 @@ format:
 execute:
   echo: false
 output:
-  rmdformats::html_clean:
+  rmdformats::downcute:
     fig_width: 10
     fig_height: 4
     thumbnails: false
+    css: "style.css"
 params:
     score_records_file: NA
     metrics_records_file: NA
@@ -70,7 +71,7 @@ get_efo_link <- function(trait_id, text=trait_id) {
 
 # Summary
 
-This table shows the number of unique publications based on [PubmedID submitted to the PRIMED website](https://primedconsortium.org/publications/published) that have records in PGS Catalog; the number of PRS developed in these publications; and the number of unique PRS evaluated in these publications.
+This table shows the number of unique publications based on [PubmedID submitted to the PRIMED website](https://primedconsortium.org/publications/published) that have records in [PGS Catalog](https://www.pgscatalog.org/); the number of PRS developed in these publications; and the number of unique PRS evaluated in these publications.
 A single publication can include both development and evaluation of a PRS.
 
 ```{r}
@@ -424,7 +425,7 @@ z %>%
 
 The following plot shows the relative number of evaluations for each ancestry category from the "Total" row in the table above.
 
-```{r, out.width="90%", fig.align="center", fig.alt="Treemap plot showing the relative number of PRIMED PRS evaluations for each ancestry category."}
+```{r, out.width="90%", fig.align="center", fig.alt="Treemap plot showing the relative number of PRIMED PRS evaluations for each ancestry category.", dev = "png", dev.args=list(bg="transparent")}
 cmap = c(
     "EUR" = "grey80",
     "NR" = "grey60",
@@ -452,6 +453,14 @@ ggplot(p, aes(
   label=glue::glue("{ancestry_category} ({n})")
 )) +
   geom_treemap() +
+  theme(
+    panel.background = ggplot2::element_rect(fill='transparent'), #transparent panel bg
+    plot.background = ggplot2::element_rect(fill='transparent', color=NA), #transparent plot bg
+    panel.grid.major = ggplot2::element_blank(), #remove major gridlines
+    panel.grid.minor = ggplot2::element_blank(), #remove minor gridlines
+    legend.background = ggplot2::element_rect(fill='transparent'), #transparent legend bg
+    # legend.box.background = ggplot2::element_rect(fill='transparent') #transparent legend panel
+  ) +
   scale_fill_manual(values=setNames(p$color, p$group)) +
   geom_treemap_text(place="centre")
 ```
