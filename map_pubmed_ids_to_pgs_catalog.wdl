@@ -51,7 +51,7 @@ task query_pubs {
     }
     runtime {
         # Pull from DockerHub
-        docker: "uwgac/primed-pgs-queries:0.3.0"
+        docker: "uwgac/primed-pgs-queries:0.3.1"
     }
 }
 
@@ -70,6 +70,6 @@ task run_pubs_report {
         File report_file = "query_pgs_by_pmids.html"
     }
     runtime {
-        docker: "uwgac/primed-pgs-queries:0.3.0"
+        docker: "uwgac/primed-pgs-queries:0.3.1"
     }
 }

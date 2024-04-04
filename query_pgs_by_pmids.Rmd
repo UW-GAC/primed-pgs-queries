@@ -424,7 +424,7 @@ z %>%
 
 The following plot shows the relative number of evaluations for each ancestry category from the "Total" row in the table above.
 
-```{r, out.width="90%", fig.align="center"}
+```{r, out.width="90%", fig.align="center", fig.alt="Treemap plot showing the relative number of PRIMED PRS evaluations for each ancestry category."}
 cmap = c(
     "EUR" = "grey80",
     "NR" = "grey60",
