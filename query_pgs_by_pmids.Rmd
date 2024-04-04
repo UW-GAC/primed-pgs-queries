@@ -9,10 +9,11 @@ format:
 execute:
   echo: false
 output:
-  rmdformats::html_clean:
+  rmdformats::downcute:
     fig_width: 10
     fig_height: 4
     thumbnails: false
+    css: "style.css"
 params:
     score_records_file: NA
     metrics_records_file: NA

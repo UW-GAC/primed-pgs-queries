@@ -1,0 +1,10 @@
+.Sidebar {
+    background-image: url('primed_logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center top;
+    margin-top: 1em;
+    }
+    #toc {
+    margin-top: 80px;
+    }
