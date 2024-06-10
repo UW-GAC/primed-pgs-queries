@@ -29,10 +29,12 @@ def get_publication_records(pmids):
 def get_pgs_records(pgs_ids):
     # Create an instance of the API class.
     score_api = pgs_catalog_client.ScoreEndpointsApi()
-    response = score_api.get_all_scores(filter_ids=",".join(pgs_ids))
-    if response.next:
-        raise NotImplementedError("Pagination not implemented")
-    return response.results
+    pgs_records = []
+    for pgs_id in progressbar(pgs_ids):
+        time.sleep(0.5)
+        response = score_api.get_score(pgs_id)
+        pgs_records.append(response)
+    return pgs_records
 
 def get_metrics_records(pmids):
     # Create an instance of the API class.
