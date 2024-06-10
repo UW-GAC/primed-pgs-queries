@@ -57,7 +57,7 @@ get_pgs_link <- function(pgs_id) {
 }
 
 get_pgp_link <- function(pgp_id) {
-  return(glue::glue("[{pgp_id}](https://www.pgscatalog.org/publications/{pgp_id})"))
+  return(glue::glue("[{pgp_id}](https://www.pgscatalog.org/publication/{pgp_id})"))
 }
 
 get_pubmed_link <- function(pmid) {
