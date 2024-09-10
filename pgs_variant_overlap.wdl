@@ -6,7 +6,10 @@ workflow pgs_variant_overlap {
         File target_variant_file
     }
 
-    call match_variants {}
+    call match_variants {
+        input:
+            target_variant_file=target_variant_file
+    }
 
     meta {
         author: "Adrienne Stilp"
