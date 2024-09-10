@@ -1,0 +1,90 @@
+---
+title: "Variant overlap calculation with PGS catalog scores"
+author: "PRIMED CC"
+date: "`r lubridate::today()`"
+format:
+  html:
+    toc: true
+    self_contained: yes
+params:
+    matches_file: "../matchout/0.ipc.zst"
+    combined_scoring_file: "../tmp/combined.txt.gz"
+    output_file: "overlap_fraction.tsv"
+---
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(polars)
+library(knitr)
+
+options(knitr.kable.NA = '--')
+knitr::opts_chunk$set(message=FALSE)
+```
+
+# Input parameters
+
+```{r}
+params
+```
+# Read in the scoring and matches files
+
+```{r}
+matches <- pl$read_ipc(params$matches_file) %>%
+    # Convert to tibble for now.
+    as_tibble()
+dim(matches)
+
+# Read in the combined file.
+combined_scores <- read_tsv(params$combined_scoring_file)
+dim(combined_scores)
+```
+
+# Caclulate summary of matches by chromosome
+```{r}
+score_summary <- combined_scores %>%
+    group_by(accession, chr_name) %>%
+    count(name="n_variants")
+
+overlap_fraction_by_chr <-
+    matches %>%
+    # left_join(score_summary, by=c("accession", "chr_name")) %>%
+    group_by(accession, chr_name) %>%
+    summarise(
+        n_matched=n()
+    ) %>%
+    left_join(score_summary, by=c("accession", "chr_name")) %>%
+    mutate(
+        overlap_fraction=n_matched / n_variants,
+        accession = str_replace(accession, "_hmPOS_GRCh38", "")
+    )
+```
+
+## Summary
+
+```{r}
+ggplot(overlap_fraction_by_chr, aes(x=accession, y = overlap_fraction)) +
+    geom_boxplot(outliers=FALSE) +
+    geom_jitter(width=0.1) +
+    ggtitle("Overlap fraction by chromosome")
+
+overlap_fraction_by_chr %>% kable()
+```
+
+# Caclulate overall match fraction for each PGS
+
+```{r}
+# Now calculate match fraction overall.
+overlap_fraction <- overlap_fraction_by_chr %>%
+    group_by(accession) %>%
+    summarise(
+        n_variants=sum(n_variants),
+        n_matched=sum(n_matched),
+        overlap_fraction=n_matched / n_variants
+    )
+overlap_fraction %>% kable()
+```
+
+# Write out results
+```{r}
+write_tsv(overlap_fraction, params$output_file)
+```
