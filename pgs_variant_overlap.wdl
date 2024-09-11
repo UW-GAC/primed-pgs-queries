@@ -33,9 +33,10 @@ task match_variants {
         # Call a script to process overlap.
         cp /usr/local/primed-pgs-queries/pgs_variant_overlap/calculate_overlap.Rmd .
         R -e "rmarkdown::render('calculate_overlap.Rmd', params=list(matches_file='output/0.ipc.zst', combined_scoring_file='combined.txt.gz'))"
+        ls
     >>>
     output {
-        File overlap_file = "overlap.tsv"
+        File overlap_file = "overlap_fraction.tsv"
     }
     runtime {
         # Pull from DockerHub
