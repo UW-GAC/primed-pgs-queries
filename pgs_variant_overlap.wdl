@@ -33,7 +33,9 @@ workflow pgs_variant_overlap {
 
 task create_score_id_files {
     command <<<
-        python3 /usr/local/primed-pgs-queries/create_score_id_files.py --output-dir output --variants-per-batch 100000
+        python3 /usr/local/primed-pgs-queries/pgs_variant_overlap/create_score_id_files.py
+            --output-dir output \
+            --variants-per-batch 100000
     >>>
     output {
         Array[File] score_ids_files = glob("output/score_ids_*.txt")
