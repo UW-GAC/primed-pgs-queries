@@ -39,7 +39,7 @@ combined_scores <- read_tsv(params$combined_scoring_file)
 dim(combined_scores)
 ```
 
-# Caclulate summary of matches by chromosome
+# Calculate summary of matches by chromosome
 ```{r}
 score_summary <- combined_scores %>%
     group_by(accession, chr_name) %>%
@@ -56,21 +56,15 @@ overlap_fraction_by_chr <-
     mutate(
         overlap_fraction=n_matched / n_variants,
         accession = str_replace(accession, "_hmPOS_GRCh38", "")
+    ) %>%
+    mutate(
+        chr_name = str_replace(chr_name, "23", "X"),
+        chr_name = str_replace(chr_name, "24", "Y"),
+        chr_name = ordered(chr_name, levels=c(1:22, "X", "Y"))
     )
 ```
 
-## Summary
-
-```{r}
-ggplot(overlap_fraction_by_chr, aes(x=accession, y = overlap_fraction)) +
-    geom_boxplot(outliers=FALSE) +
-    geom_jitter(width=0.1) +
-    ggtitle("Overlap fraction by chromosome")
-
-overlap_fraction_by_chr %>% kable()
-```
-
-# Caclulate overall match fraction for each PGS
+# Calculate overall match fraction for each PGS
 
 ```{r}
 # Now calculate match fraction overall.
@@ -83,6 +77,24 @@ overlap_fraction <- overlap_fraction_by_chr %>%
     )
 overlap_fraction %>% kable()
 ```
+
+# Summaries
+
+```{r}
+ggplot(overlap_fraction_by_chr, aes(x=chr_name, y = overlap_fraction)) +
+    geom_point() +
+    facet_wrap(~accession, ncol=1) +
+    theme_bw()
+
+ggplot(overlap_fraction_by_chr, aes(x=accession, y = overlap_fraction)) +
+    geom_boxplot(outliers=FALSE) +
+    geom_jitter(width=0.1) +
+    theme_bw() +
+    ggtitle("Overlap fraction by chromosome")
+
+overlap_fraction_by_chr %>% kable()
+```
+
 
 # Write out results
 ```{r}
