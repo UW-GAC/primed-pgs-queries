@@ -26,6 +26,7 @@ knitr::opts_chunk$set(message=FALSE)
 ```{r}
 params
 ```
+
 # Read in the scoring and matches files
 
 ```{r}
@@ -40,6 +41,7 @@ dim(combined_scores)
 ```
 
 # Calculate summary of matches by chromosome
+
 ```{r}
 score_summary <- combined_scores %>%
     group_by(accession, chr_name) %>%
@@ -47,7 +49,6 @@ score_summary <- combined_scores %>%
 
 overlap_fraction_by_chr <-
     matches %>%
-    # left_join(score_summary, by=c("accession", "chr_name")) %>%
     group_by(accession, chr_name) %>%
     summarise(
         n_matched=n()
@@ -67,7 +68,6 @@ overlap_fraction_by_chr <-
 # Calculate overall match fraction for each PGS
 
 ```{r}
-# Now calculate match fraction overall.
 overlap_fraction <- overlap_fraction_by_chr %>%
     group_by(accession) %>%
     summarise(
