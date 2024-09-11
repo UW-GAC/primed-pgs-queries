@@ -92,7 +92,9 @@ ggplot(overlap_fraction_by_chr, aes(x=accession, y = overlap_fraction)) +
     theme_bw() +
     ggtitle("Overlap fraction by chromosome")
 
-overlap_fraction_by_chr %>% kable()
+overlap_fraction_by_chr %>%
+    arrange(accession, chr_name) %>%
+    kable()
 ```
 
 
