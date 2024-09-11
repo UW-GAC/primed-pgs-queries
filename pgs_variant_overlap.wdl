@@ -8,15 +8,28 @@ workflow pgs_variant_overlap {
 
     call create_score_id_files {}
 
-    call calculate_overlap {
-        input:
-            target_variant_file=target_variant_file,
-            score_ids_file=create_score_id_files.score_ids_file
+    scatter (file in create_score_id_files.score_ids_files) {
+        call calculate_overlap {
+            input:
+                target_variant_file=target_variant_file,
+                score_ids_file=file
+        }
     }
 
+    call combine_overlap_files {
+        input:
+            files=calculate_overlap.overlap_file
+    }
+
+    # call calculate_overlap {
+    #     input:
+    #         target_variant_file=target_variant_file,
+    #         score_ids_file=create_score_id_files.score_ids_file
+    # }
+
     output {
-        File overlap_file = calculate_overlap.overlap_file
-        File match_report = calculate_overlap.match_report
+        File overlap_file = combine_overlap_files.combined_overlap_file
+        Array[File] match_report = calculate_overlap.match_report
     }
     meta {
         author: "Adrienne Stilp"
@@ -28,14 +41,16 @@ task create_score_id_files {
     command <<<
         # Eventually this will call a python script to generate score id files.
         # For now just create a file with some fixed score ids.
-        echo "PGS000822" > score_ids.txt
-        echo "PGS001229" >> score_ids.txt
-        echo "PGS000011" >> score_ids.txt
-        echo "PGS000015" >> score_ids.txt
-        echo "PGS000019" >> score_ids.txt
+        # First file.
+        echo "PGS000822" > score_ids_1.txt
+        echo "PGS001229" >> score_ids_1.txt
+        echo "PGS000011" >> score_ids_1.txt
+        # Second file.
+        echo "PGS000015" > score_ids_2.txt
+        echo "PGS000019" >> score_ids_2.txt
     >>>
     output {
-        File score_ids_file = "score_ids.txt"
+        Array[File] score_ids_files = glob("score_ids_*.txt")
     }
     runtime {
         # Pull from DockerHub
@@ -60,11 +75,26 @@ task calculate_overlap {
         # Call a script to process overlap.
         cp /usr/local/primed-pgs-queries/pgs_variant_overlap/calculate_overlap.Rmd .
         R -e "rmarkdown::render('calculate_overlap.Rmd', params=list(matches_file='output/0.ipc.zst', combined_scoring_file='combined.txt.gz'))"
-        ls
     >>>
     output {
         File overlap_file = "overlap_fraction.tsv"
         File match_report="calculate_overlap.html"
+    }
+    runtime {
+        # Pull from DockerHub
+        docker: "uwgac/primed-pgs-queries:0.4.0"
+    }
+}
+
+task combine_overlap_files {
+    input {
+        Array[File] files
+    }
+    command <<<
+        cat ~{sep=' ' files} > overlap_fraction_combined.txt
+    >>>
+    output {
+        File combined_overlap_file = "overlap_fraction_combined.txt"
     }
     runtime {
         # Pull from DockerHub
