@@ -21,12 +21,6 @@ workflow pgs_variant_overlap {
             files=calculate_overlap.overlap_file
     }
 
-    # call calculate_overlap {
-    #     input:
-    #         target_variant_file=target_variant_file,
-    #         score_ids_file=create_score_id_files.score_ids_file
-    # }
-
     output {
         File overlap_file = combine_overlap_files.combined_overlap_file
         Array[File] match_report = calculate_overlap.match_report
@@ -39,18 +33,10 @@ workflow pgs_variant_overlap {
 
 task create_score_id_files {
     command <<<
-        # Eventually this will call a python script to generate score id files.
-        # For now just create a file with some fixed score ids.
-        # First file.
-        echo "PGS000822" > score_ids_1.txt
-        echo "PGS001229" >> score_ids_1.txt
-        echo "PGS000011" >> score_ids_1.txt
-        # Second file.
-        echo "PGS000015" > score_ids_2.txt
-        echo "PGS000019" >> score_ids_2.txt
+        python3 /usr/local/primed-pgs-queries/create_score_id_files.py --output-dir output --variants-per-batch 100000
     >>>
     output {
-        Array[File] score_ids_files = glob("score_ids_*.txt")
+        Array[File] score_ids_files = glob("output/score_ids_*.txt")
     }
     runtime {
         # Pull from DockerHub
