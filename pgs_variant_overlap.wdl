@@ -37,6 +37,7 @@ task match_variants {
     >>>
     output {
         File overlap_file = "overlap_fraction.tsv"
+        File match_report="calculate_overlap.html"
     }
     runtime {
         # Pull from DockerHub
