@@ -7,8 +7,8 @@ format:
     toc: true
     self_contained: yes
 params:
-    matches_file: "../matchout/0.ipc.zst"
-    combined_scoring_file: "../tmp/combined.txt.gz"
+    matches_file: "output/0.ipc.zst"
+    combined_scoring_file: "combined.txt.gz"
     output_file: "overlap_fraction.tsv"
 ---
 
