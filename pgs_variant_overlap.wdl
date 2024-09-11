@@ -8,15 +8,15 @@ workflow pgs_variant_overlap {
 
     call create_score_id_files {}
 
-    call match_variants {
+    call calculate_overlap {
         input:
             target_variant_file=target_variant_file,
             score_ids_file=create_score_id_files.score_ids_file
     }
 
     output {
-        File overlap_file = match_variants.overlap_file
-        File match_report = match_variants.match_report
+        File overlap_file = calculate_overlap.overlap_file
+        File match_report = calculate_overlap.match_report
     }
     meta {
         author: "Adrienne Stilp"
@@ -43,7 +43,7 @@ task create_score_id_files {
     }
 }
 
-task match_variants {
+task calculate_overlap {
     input {
         File target_variant_file
         File score_ids_file
