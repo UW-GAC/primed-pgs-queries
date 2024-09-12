@@ -33,7 +33,9 @@ workflow pgs_variant_overlap {
 
 task create_score_id_files {
     command <<<
-        python3 /usr/local/primed-pgs-queries/pgs_variant_overlap/create_score_id_files.py
+        # Add to python path so we can import the module.
+        export PYTHONPATH="/usr/local/primed-pgs-queries:$PYTHONPATH"
+        python3 /usr/local/primed-pgs-queries/pgs_variant_overlap/create_score_files.py \
             --output-dir output \
             --variants-per-batch 100000
     >>>
@@ -54,6 +56,7 @@ task calculate_overlap {
     command <<<
         set -e -o pipefail
         mkdir tmp output
+
         # Download the scoring files
         pgscatalog-download --pgs $(cat ~{score_ids_file}) --build GRCh38 -o tmp/
         # Combine the scoring files
@@ -63,6 +66,10 @@ task calculate_overlap {
         # Call a script to process overlap.
         cp /usr/local/primed-pgs-queries/pgs_variant_overlap/calculate_overlap.Rmd .
         R -e "rmarkdown::render('calculate_overlap.Rmd', params=list(matches_file='output/0.ipc.zst', combined_scoring_file='combined.txt.gz'))"
+
+        # # For local testing:
+        # touch calculate_overlap.html
+        # cp ~{score_ids_file} overlap_fraction.tsv
     >>>
     output {
         File overlap_file = "overlap_fraction.tsv"
