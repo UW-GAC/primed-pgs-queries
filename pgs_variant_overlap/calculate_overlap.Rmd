@@ -93,6 +93,13 @@ overlap_fraction %>% kable()
 # Summaries
 
 ```{r}
+ggplot(overlap_fraction_by_chr, aes(x=chr_name, y = overlap_fraction)) +
+    geom_point() +
+    geom_hline(aes(yintercept=overlap_fraction), data=overlap_fraction, color="red") +
+    facet_wrap(~accession) +
+    coord_cartesian(ylim=c(0, 1)) +
+    theme_bw()
+
 ggplot(overlap_fraction_by_chr, aes(x=accession, y = overlap_fraction)) +
     geom_boxplot(outliers=FALSE) +
     geom_jitter(width=0.1) +
