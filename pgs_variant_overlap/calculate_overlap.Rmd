@@ -40,6 +40,23 @@ combined_scores <- read_tsv(params$combined_scoring_file)
 dim(combined_scores)
 ```
 
+# Set chromosome
+
+```{r}
+matches <- matches %>%
+    mutate(
+        chr_name = str_replace(chr_name, "23", "X"),
+        chr_name = str_replace(chr_name, "24", "Y"),
+        chr_name = ordered(chr_name, levels=c(1:22, "X", "Y"))
+    )
+combined_scores <- combined_scores %>%
+    mutate(
+        chr_name = str_replace(chr_name, "23", "X"),
+        chr_name = str_replace(chr_name, "24", "Y"),
+        chr_name = ordered(chr_name, levels=c(1:22, "X", "Y"))
+    )
+```
+
 # Calculate summary of matches by chromosome
 
 ```{r}
@@ -57,11 +74,6 @@ overlap_fraction_by_chr <-
     mutate(
         overlap_fraction=n_matched / n_variants,
         accession = str_replace(accession, "_hmPOS_GRCh38", "")
-    ) %>%
-    mutate(
-        chr_name = str_replace(chr_name, "23", "X"),
-        chr_name = str_replace(chr_name, "24", "Y"),
-        chr_name = ordered(chr_name, levels=c(1:22, "X", "Y"))
     )
 ```
 
