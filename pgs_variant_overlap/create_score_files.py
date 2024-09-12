@@ -1,7 +1,7 @@
 import argparse
 import os
 import sys
-sys.path.insert(0, "..")
+
 import pgs_catalog_client
 
 # Define a bin class
@@ -43,8 +43,8 @@ def pack(items, weight_fn, max_weight):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create files containing PGS catalog score ids")
-    parser.add_argument("--output-dir", type=str, help="Directory in which to save the files")
-    parser.add_argument("--variants-per-batch", type=int, help="Number of variants to include per batch")
+    parser.add_argument("--output-dir", type=str, help="Directory in which to save the files", required=True)
+    parser.add_argument("--variants-per-batch", type=int, help="Number of variants to include per batch", default=100000)
     args = parser.parse_args()
 
     # Pull scores from the catalog
