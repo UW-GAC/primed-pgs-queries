@@ -93,12 +93,6 @@ overlap_fraction %>% kable()
 # Summaries
 
 ```{r}
-ggplot(overlap_fraction_by_chr, aes(x=chr_name, y = overlap_fraction)) +
-    geom_point() +
-    facet_wrap(~accession, ncol=1) +
-    coord_cartesian(ylim=c(0, 1)) +
-    theme_bw()
-
 ggplot(overlap_fraction_by_chr, aes(x=accession, y = overlap_fraction)) +
     geom_boxplot(outliers=FALSE) +
     geom_jitter(width=0.1) +
