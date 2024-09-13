@@ -21,10 +21,17 @@ workflow pgs_variant_overlap {
             files=calculate_overlap.overlap_file
     }
 
+    call render_overlap_report {
+        input:
+            overlap_file=combine_overlap_files.combined_overlap_file
+    }
+
     output {
         File overlap_file = combine_overlap_files.combined_overlap_file
         Array[File] match_report = calculate_overlap.match_report
+        File overlap_report = render_overlap_report.report
     }
+
     meta {
         author: "Adrienne Stilp"
         email: "amstilp@uw.edu"
@@ -66,10 +73,6 @@ task calculate_overlap {
         # Call a script to process overlap.
         cp /usr/local/primed-pgs-queries/pgs_variant_overlap/calculate_overlap.Rmd .
         R -e "rmarkdown::render('calculate_overlap.Rmd', params=list(matches_file='output/0.ipc.zst', combined_scoring_file='combined.txt.gz'))"
-
-        # # For local testing:
-        # touch calculate_overlap.html
-        # cp ~{score_ids_file} overlap_fraction.tsv
     >>>
     output {
         File overlap_file = "overlap_fraction.tsv"
@@ -87,10 +90,29 @@ task combine_overlap_files {
         Array[File] files
     }
     command <<<
-        cat ~{sep=' ' files} > overlap_fraction_combined.txt
+        # Combine files with the header row from only the first.
+        # Stack overflow: xhttps://stackoverflow.com/questions/40027867/how-to-concatenate-multiple-files-with-same-header-some-of-the-files-only-have-h
+        awk 'FNR>1 || NR==1' ~{sep=" " files} > overlap_fraction_combined.txt
     >>>
     output {
         File combined_overlap_file = "overlap_fraction_combined.txt"
+    }
+    runtime {
+        # Pull from DockerHub
+        docker: "uwgac/primed-pgs-queries:0.4.0"
+    }
+}
+
+task render_overlap_report {
+    input {
+        File overlap_file
+    }
+    command <<<
+        cp /usr/local/primed-pgs-queries/pgs_variant_overlap/overlap_report.Rmd .
+        R -e "rmarkdown::render('overlap_report.Rmd', params=list(overlap_file='~{overlap_file}'))"
+    >>>
+    output {
+        File report = "overlap_report.html"
     }
     runtime {
         # Pull from DockerHub
