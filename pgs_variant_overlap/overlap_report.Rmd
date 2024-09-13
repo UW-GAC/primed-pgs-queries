@@ -1,0 +1,47 @@
+---
+title: "Report variant overlap for PGS catalog scores"
+author: "PRIMED CC"
+date: "`r lubridate::today()`"
+format:
+  html:
+    toc: true
+    self_contained: yes
+params:
+    overlap_file: "overlap_fraction_combined.txt"
+---
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(knitr)
+
+options(knitr.kable.NA = '--')
+knitr::opts_chunk$set(message=FALSE)
+```
+
+# Input parameters
+
+```{r}
+params
+```
+
+# Read in file
+```{r}
+overlaps <- read_tsv(params$overlap_file)
+dim(overlaps)
+```
+
+# Plots
+
+```{r}
+ggplot(overlaps, aes(x=overlap_fraction)) +
+    geom_histogram(bins=20) +
+    labs(title="Histogram of overlap fraction", x="Overlap fraction", y="Count")
+```
+
+# Table
+
+```{r}
+overlaps %>%
+    arrange(desc(overlap_fraction)) %>%
+    kable()
+```

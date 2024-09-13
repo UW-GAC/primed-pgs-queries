@@ -1,5 +1,5 @@
 ---
-title: "Variant overlap calculation with PGS catalog scores"
+title: "Calculate variant overlap calculation for PGS catalog scores"
 author: "PRIMED CC"
 date: "`r lubridate::today()`"
 format:
