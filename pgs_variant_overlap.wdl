@@ -78,6 +78,7 @@ task calculate_overlap {
     runtime {
         # Pull from DockerHub
         docker: "uwgac/primed-pgs-queries:0.4.0"
+        memory: "16 G"
     }
 }
 
