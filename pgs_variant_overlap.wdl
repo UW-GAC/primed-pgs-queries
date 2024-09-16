@@ -90,12 +90,18 @@ task combine_score_files {
 }
 
 task calculate_overlap {
+
     input {
         File target_variant_file
         File combined_scoring_file
     }
+
+    Int mem_gb = ceil(2*(size(combined_scoring_file, "GB") + size(target_variant_file, "GB"))) + 10
+
+
     command <<<
         set -e -o pipefail
+        echo $mem_gb
         mkdir output
         # Calculate the overlap.
         pgscatalog-match --dataset primed --scorefiles combined.txt.gz --target ~{target_variant_file} --outdir output --only_match
@@ -110,7 +116,7 @@ task calculate_overlap {
     runtime {
         # Pull from DockerHub
         docker: "uwgac/primed-pgs-queries:0.4.0"
-        memory: "16 G"
+        memory: mem_gb + " GB"
     }
 }
 
