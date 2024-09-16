@@ -44,12 +44,16 @@ def pack(items, weight_fn, max_weight):
     return bins
 
 
-def get_pgs_score_ids():
+def get_pgs_score_ids(ids=None):
     """Pull scores from the PGS catalog."""
     # I'm not sure how to get the "next" page of results easily using the swagger codegen api bindings.
     # Just call it manually for now.
     url = "https://www.pgscatalog.org/rest/score/all/"
-    response = requests.get(url).json()
+    if ids:
+        params = {"filter_ids": ids}
+    else:
+        params = {}
+    response = requests.get(url, params=params).json()
     done = False
     scores = []
     while not done:
@@ -67,9 +71,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create files containing PGS catalog score ids")
     parser.add_argument("--output-dir", type=str, help="Directory in which to save the files", required=True)
     parser.add_argument("--variants-per-batch", type=int, help="Number of variants to include per batch", default=5000000)
+    parser.add_argument("--score_ids", type=str, help="Comma-separated list of score ids to include", default=None)
+
     args = parser.parse_args()
 
-    scores = get_pgs_score_ids()
+    scores = get_pgs_score_ids(ids=args.score_ids)
 
     # Now begin binning the scores.
     bins = pack(scores, lambda x: x["n_variants"], args.variants_per_batch)
