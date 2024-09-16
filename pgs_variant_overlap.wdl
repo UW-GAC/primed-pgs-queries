@@ -4,9 +4,13 @@ workflow pgs_variant_overlap {
 
     input {
         File target_variant_file
+        String? score_ids
     }
 
-    call create_score_id_files {}
+    call create_score_id_files {
+        input:
+            score_ids=score_ids
+    }
 
     scatter (file in create_score_id_files.score_ids_files) {
         call calculate_overlap {
@@ -39,12 +43,15 @@ workflow pgs_variant_overlap {
 }
 
 task create_score_id_files {
+    input {
+        String? score_ids
+    }
+
     command <<<
-        # Add to python path so we can import the module.
-        export PYTHONPATH="/usr/local/primed-pgs-queries:$PYTHONPATH"
         python3 /usr/local/primed-pgs-queries/pgs_variant_overlap/create_score_files.py \
             --output-dir output \
-            --variants-per-batch 100000
+            --variants-per-batch 100000 \
+            ~{"--score_ids "  + score_ids}
     >>>
     output {
         Array[File] score_ids_files = glob("output/score_ids_*.txt")
