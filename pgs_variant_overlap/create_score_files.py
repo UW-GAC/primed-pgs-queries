@@ -1,8 +1,11 @@
 import argparse
 import os
 import sys
+import time
 
-import pgs_catalog_client
+import requests
+
+# import pgs_catalog_client
 
 # Define a bin class
 class Bin(object):
@@ -41,17 +44,32 @@ def pack(items, weight_fn, max_weight):
     return bins
 
 
+def get_pgs_score_ids():
+    """Pull scores from the PGS catalog."""
+    # I'm not sure how to get the "next" page of results easily using the swagger codegen api bindings.
+    # Just call it manually for now.
+    url = "https://www.pgscatalog.org/rest/score/all/"
+    response = requests.get(url).json()
+    done = False
+    scores = []
+    while not done:
+        scores = scores + [{"id": score["id"], "n_variants": score["variants_number"]} for score in response["results"]]
+        next_url = response["next"]
+        if next_url:
+            time.sleep(1)
+            print(f"Getting next page: {next_url}")
+            response = requests.get(next_url).json()
+        else:
+            done = True
+    return scores
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create files containing PGS catalog score ids")
     parser.add_argument("--output-dir", type=str, help="Directory in which to save the files", required=True)
-    parser.add_argument("--variants-per-batch", type=int, help="Number of variants to include per batch", default=100000)
+    parser.add_argument("--variants-per-batch", type=int, help="Number of variants to include per batch", default=5000000)
     args = parser.parse_args()
 
-    # Pull scores from the catalog
-    # This does not handle the "next" parameter yet.
-    score_api = pgs_catalog_client.ScoreEndpointsApi()
-    response = score_api.get_all_scores()
-    scores = [{"id": score.id, "n_variants": score.variants_number} for score in response.results]
+    scores = get_pgs_score_ids()
 
     # Now begin binning the scores.
     bins = pack(scores, lambda x: x["n_variants"], args.variants_per_batch)
