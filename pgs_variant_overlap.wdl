@@ -13,10 +13,14 @@ workflow pgs_variant_overlap {
     }
 
     scatter (file in create_score_id_files.score_ids_files) {
+        call combine_score_files {
+            input:
+                score_ids_file=file
+        }
         call calculate_overlap {
             input:
                 target_variant_file=target_variant_file,
-                score_ids_file=file
+                combined_scoring_file=combine_score_files.combined_scoring_file
         }
     }
 
@@ -62,19 +66,37 @@ task create_score_id_files {
     }
 }
 
-task calculate_overlap {
+task combine_score_files {
     input {
         File target_variant_file
         File score_ids_file
     }
     command <<<
         set -e -o pipefail
-        mkdir tmp output
-
+        mkdir tmp
         # Download the scoring files
         pgscatalog-download --pgs $(cat ~{score_ids_file}) --build GRCh38 -o tmp/
         # Combine the scoring files
         pgscatalog-combine -s tmp/PGS*.txt.gz -t GRCh38 -o combined.txt.gz
+    >>>
+    output {
+        File combined_scoring_file = "combined.txt.gz"
+    }
+    runtime {
+        # Pull from DockerHub
+        docker: "uwgac/primed-pgs-queries:0.4.0"
+        memory: "16 G"
+    }
+}
+
+task calculate_overlap {
+    input {
+        File target_variant_file
+        File combined_scoring_file
+    }
+    command <<<
+        set -e -o pipefail
+        mkdir output
         # Calculate the overlap.
         pgscatalog-match --dataset primed --scorefiles combined.txt.gz --target ~{target_variant_file} --outdir output --only_match
         # Call a script to process overlap.
