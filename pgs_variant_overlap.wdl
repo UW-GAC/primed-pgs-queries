@@ -68,9 +68,9 @@ task create_score_id_files {
 
 task combine_score_files {
     input {
-        File target_variant_file
         File score_ids_file
     }
+
     command <<<
         set -e -o pipefail
         mkdir tmp
@@ -96,12 +96,16 @@ task calculate_overlap {
         File combined_scoring_file
     }
 
-    Int mem_gb = ceil(2*(size(combined_scoring_file, "GB") + size(target_variant_file, "GB"))) + 10
+    Float combined_scoring_file_size = size(combined_scoring_file, "GB")
+    Float target_variant_file_size = size(target_variant_file, "GB")
+    Int mem_gb = ceil(combined_scoring_file_size + target_variant_file_size) + 1
 
 
     command <<<
         set -e -o pipefail
-        echo $mem_gb
+        echo "combined scoring file size: " ~{combined_scoring_file_size}
+        echo "target variant file size: " ~{target_variant_file_size}
+        echo "requested memory: " ~{mem_gb}
         mkdir output
         # Calculate the overlap.
         pgscatalog-match --dataset primed --scorefiles combined.txt.gz --target ~{target_variant_file} --outdir output --only_match
