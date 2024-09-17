@@ -111,10 +111,10 @@ task calculate_overlap {
         echo "requested memory: " ~{mem_gb}
         mkdir output
         # Calculate the overlap.
-        pgscatalog-match --dataset primed --scorefiles combined.txt.gz --target ~{target_variant_file} --outdir output --only_match
+        pgscatalog-match --dataset primed --scorefiles ~{combined_scoring_file} --target ~{target_variant_file} --outdir output --only_match
         # Call a script to process overlap.
         cp /usr/local/primed-pgs-queries/pgs_variant_overlap/calculate_overlap.Rmd .
-        R -e "rmarkdown::render('calculate_overlap.Rmd', params=list(matches_file='output/0.ipc.zst', combined_scoring_file='combined.txt.gz'))"
+        R -e "rmarkdown::render('calculate_overlap.Rmd', params=list(matches_file='output/0.ipc.zst', combined_scoring_file='~{combined_scoring_file}'))"
     >>>
     output {
         File overlap_file = "overlap_fraction.tsv"
