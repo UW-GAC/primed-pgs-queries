@@ -17,10 +17,13 @@ workflow pgs_variant_overlap {
             input:
                 score_ids_file=file
         }
+    }
+
+    scatter (file in combine_score_files.combined_scoring_file) {
         call calculate_overlap {
             input:
                 target_variant_file=target_variant_file,
-                combined_scoring_file=combine_score_files.combined_scoring_file
+                combined_scoring_file=file
         }
     }
 
