@@ -101,7 +101,7 @@ task calculate_overlap {
 
     Float combined_scoring_file_size = size(combined_scoring_file, "GB")
     Float target_variant_file_size = size(target_variant_file, "GB")
-    Int mem_gb = ceil(combined_scoring_file_size + target_variant_file_size) + 1
+    Int mem_gb = ceil(2 * combined_scoring_file_size + 2 * target_variant_file_size) + 10
 
 
     command <<<
