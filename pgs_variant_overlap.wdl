@@ -5,11 +5,13 @@ workflow pgs_variant_overlap {
     input {
         File target_variant_file
         String? score_ids
+        Int? variants_per_batch=5000000
     }
 
     call create_score_id_files {
         input:
-            score_ids=score_ids
+            score_ids=score_ids,
+            variants_per_batch=variants_per_batch
     }
 
     scatter (file in create_score_id_files.score_ids_files) {
@@ -52,12 +54,13 @@ workflow pgs_variant_overlap {
 task create_score_id_files {
     input {
         String? score_ids
+        Int? variants_per_batch=500000
     }
 
     command <<<
         python3 /usr/local/primed-pgs-queries/pgs_variant_overlap/create_score_files.py \
             --output-dir output \
-            --variants-per-batch 100000 \
+            --variants-per-batch ~{variants_per_batch} \
             ~{"--score_ids "  + score_ids}
     >>>
     output {
