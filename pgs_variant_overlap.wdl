@@ -81,7 +81,11 @@ task combine_score_files {
         set -e -o pipefail
         mkdir tmp
         # Download the scoring files
-        pgscatalog-download --pgs $(cat ~{score_ids_file}) --build GRCh38 -o tmp/
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            pgscatalog-download --pgs $line --build GRCh38 -o tmp/
+        done < ~{score_ids_file}
+        # pgscatalog-download --pgs $(cat ~{score_ids_file}) --build GRCh38 -o tmp/
+
         # Combine the scoring files
         pgscatalog-combine -s tmp/PGS*.txt.gz -t GRCh38 -o combined.txt.gz
     >>>
