@@ -82,6 +82,7 @@ task combine_score_files {
         mkdir tmp
         # Download the scoring files
         while IFS= read -r line || [[ -n "$line" ]]; do
+            sleep 10
             pgscatalog-download --pgs $line --build GRCh38 -o tmp/
         done < ~{score_ids_file}
         # pgscatalog-download --pgs $(cat ~{score_ids_file}) --build GRCh38 -o tmp/
