@@ -63,20 +63,36 @@ def pack(items, weight_fn, max_weight):
     return bins
 
 
-def get_pgs_score_ids(ids=None):
-    """Pull scores from the PGS catalog."""
+def get_pgs_score_ids(include=[], exclude=[]):
+    """Pull scores from the PGS catalog.
+
+    Args:
+        include (list): List of score ids to include (e.g., ["PGS000001", "PGS000002"])
+        exclude (list): List of score ids to exclude (e.g., ["PGS000003", "PGS000004"])
+
+    Returns:
+        list: List of dictionaries with keys "id" and "n_variants"
+
+    Details:
+    If the same score id appears in both include and exclude, it will be excluded.
+    """
     # I'm not sure how to get the "next" page of results easily using the swagger codegen api bindings.
     # Just call it manually for now.
     url = "https://www.pgscatalog.org/rest/score/all/"
-    if ids:
-        params = {"filter_ids": ids}
+    if include:
+        params = {"filter_ids": ",".join(include)}
     else:
         params = {}
     response = requests.get(url, params=params).json()
     done = False
     scores = []
     while not done:
-        scores = scores + [{"id": score["id"], "n_variants": score["variants_number"]} for score in response["results"]]
+        new_scores = [
+            {"id": score["id"], "n_variants": score["variants_number"]}
+            for score in response["results"]
+            if score["id"] not in exclude
+        ]
+        scores = scores + new_scores
         next_url = response["next"]
         if next_url:
             time.sleep(1)
@@ -90,11 +106,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Create files containing PGS catalog score ids")
     parser.add_argument("--output-dir", type=str, help="Directory in which to save the files", required=True)
     parser.add_argument("--variants-per-batch", type=int, help="Number of variants to include per batch", default=5000000)
-    parser.add_argument("--score_ids", type=str, help="Comma-separated list of score ids to include", default=None)
+    parser.add_argument("--include", type=str, help="Comma-separated list of score ids to include", default=None)
+    parser.add_argument("--exclude", type=str, help="Comma-separated list of score ids to exclude", default=None)
 
     args = parser.parse_args()
 
-    scores = get_pgs_score_ids(ids=args.score_ids)
+    include = args.include.split(",") if args.include else []
+    exclude = args.exclude.split(",") if args.exclude else []
+    scores = get_pgs_score_ids(include=include, exclude=exclude)
 
     # Now begin binning the scores.
     bins = pack(scores, lambda x: x["n_variants"], args.variants_per_batch)
