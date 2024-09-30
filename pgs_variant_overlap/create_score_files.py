@@ -1,3 +1,22 @@
+"""Script to query PGS catalog and bin score files for later analysis."""
+# Note: the following ids do not work with the pgscatalog-combine step.
+# See github issue: https://github.com/PGScatalog/pygscatalog/issues/44
+# PGS004255
+# PGS004256
+# PGS004258
+# PGS004259
+# PGS004260
+# PGS004261
+# PGS004262
+# PGS004263
+# PGS004264
+# PGS004272
+# PGS004273
+# PGS004280
+# PGS004299
+# PGS004301
+# PGS004304
+
 import argparse
 import os
 import sys
