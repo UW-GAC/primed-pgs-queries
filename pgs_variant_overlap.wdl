@@ -4,13 +4,15 @@ workflow pgs_variant_overlap {
 
     input {
         File target_variant_file
-        String? score_ids
+        String? include
+        String? exclude
         Int? variants_per_batch=5000000
     }
 
     call create_score_id_files {
         input:
-            score_ids=score_ids,
+            include=include,
+            exclude=exclude,
             variants_per_batch=variants_per_batch
     }
 
@@ -53,7 +55,8 @@ workflow pgs_variant_overlap {
 
 task create_score_id_files {
     input {
-        String? score_ids
+        String? include
+        String? exclude
         Int? variants_per_batch=500000
     }
 
@@ -61,7 +64,8 @@ task create_score_id_files {
         python3 /usr/local/primed-pgs-queries/pgs_variant_overlap/create_score_files.py \
             --output-dir output \
             --variants-per-batch ~{variants_per_batch} \
-            ~{"--score_ids "  + score_ids}
+            ~{"--include "  + include }
+            ~{"--exclude "  + exclude }
     >>>
     output {
         Array[File] score_ids_files = glob("output/score_ids_*.txt")
