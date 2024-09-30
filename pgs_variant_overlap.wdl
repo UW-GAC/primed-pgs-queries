@@ -64,7 +64,7 @@ task create_score_id_files {
         python3 /usr/local/primed-pgs-queries/pgs_variant_overlap/create_score_files.py \
             --output-dir output \
             --variants-per-batch ~{variants_per_batch} \
-            ~{"--include "  + include }
+            ~{"--include "  + include } \
             ~{"--exclude "  + exclude }
     >>>
     output {
