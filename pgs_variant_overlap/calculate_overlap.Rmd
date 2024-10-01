@@ -32,11 +32,11 @@ params
 ```{r}
 matches <- pl$read_ipc(params$matches_file) %>%
     # Convert to tibble for now.
-    as_tibble()
+    as_tibble(col_types=cols(chr_name="c"))
 dim(matches)
 
 # Read in the combined file.
-combined_scores <- read_tsv(params$combined_scoring_file)
+combined_scores <- read_tsv(params$combined_scoring_file, col_types=cols(chr_name="c"))
 dim(combined_scores)
 ```
 
