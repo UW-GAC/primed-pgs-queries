@@ -46,6 +46,8 @@ If you would like to calculate overlap with all scores, the `create_score_files.
 python3 create_score_files.py --output-dir test_output --variants-per-batch 1000
 ```
 
+To calculate overlap for a set of scores:
+
 1. Download the scoring files from the PGS catalog and combine them.
 
     ```bash
