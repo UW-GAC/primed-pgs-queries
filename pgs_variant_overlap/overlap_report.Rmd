@@ -38,6 +38,23 @@ ggplot(overlaps, aes(x=overlap_fraction)) +
     labs(title="Histogram of overlap fraction", x="Overlap fraction", y="Count")
 ```
 
+# Counts by bin
+
+```{r}
+breaks <- c(0, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1, Inf)
+labels <- c(
+    sprintf("x < %g", breaks[2]),
+    sprintf("%g <= x < %g", breaks[2:(length(breaks)-2)], breaks[3:(length(breaks)-1)]),
+    sprintf("x=%g", breaks[length(breaks)-1])
+)
+tmp <- overlaps %>%
+    mutate(bin=cut(overlap_fraction, breaks=breaks, right=F))
+levels(tmp$bin) <- labels
+tmp %>%
+    count(bin) %>%
+    kable()
+```
+
 # Table
 
 ```{r}
