@@ -1,0 +1,6 @@
+{
+    "pgs_variant_overlap.target_variant_file": "targets.bim",
+    "pgs_variant_overlap.include": "PGS000004,PGS000005,PGS000006",
+    "pgs_variant_overlap.exclude": "PGS000001",
+    "pgs_variant_overlap.variants_per_batch": "5000000"
+  }
