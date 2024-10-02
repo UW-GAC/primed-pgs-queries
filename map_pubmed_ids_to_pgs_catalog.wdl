@@ -37,8 +37,10 @@ task query_pubs {
         String pmid_column = "PMID"
     }
     command <<<
+        # Add to python path so we can import the pgs_catalog_client module.
+        export PYTHONPATH="/usr/local/primed-pgs-queries:$PYTHONPATH"
         # Query PGS catalog and save output.
-        python3 /usr/local/primed-pgs-queries/query_pgs_by_pmids.py \
+        python3 /usr/local/primed-pgs-queries/map_pubmed_ids_to_pgs_catalog/query_pgs_by_pmids.py \
             --pmid-url "~{pmid_url}" \
             --pmid-header ~{pmid_column} \
             --outdir "output"
@@ -51,7 +53,7 @@ task query_pubs {
     }
     runtime {
         # Pull from DockerHub
-        docker: "uwgac/primed-pgs-queries:0.3.2"
+        docker: "uwgac/primed-pgs-queries:0.4.0"
     }
 }
 
@@ -66,7 +68,7 @@ task run_pubs_report {
         # cp /usr/local/primed-pgs-queries/query_pgs_by_pmids.Rmd ./
         # cp /usr/local/primed-pgs-queries/primed_logo.png ./
         R -e "rmarkdown::render(
-            '/usr/local/primed-pgs-queries/query_pgs_by_pmids.Rmd',
+            '/usr/local/primed-pgs-queries/map_pubmed_ids_to_pgs_catalog/query_pgs_by_pmids.Rmd',
             params=list(score_records_file='~{score_records_file}', metrics_records_file='~{metrics_records_file}', publication_records_file='~{publication_records_file}'),
             output_dir='output'
         )"
@@ -75,6 +77,6 @@ task run_pubs_report {
         File report_file = "output/query_pgs_by_pmids.html"
     }
     runtime {
-        docker: "uwgac/primed-pgs-queries:0.3.2"
+        docker: "uwgac/primed-pgs-queries:0.4.0"
     }
 }
