@@ -38,23 +38,24 @@ A [WDL workflow](https://dockstore.org/workflows/github.com/UW-GAC/primed-pgs-qu
 ### Calculate overlap between PGS Catalog scores and a set of variants
 
 The `pgs_variant_overlap` directory contains code to calculate the overlap between PGS Catalog scores and a set of variants.
+The code relies on PGS Catalog utilities provided by [pygscatalog](https://github.com/PGScatalog/pygscatalog).
 
 If you would like to calculate overlap with all scores, the `create_score_files.py` script will query PGS catalog for scores and group the scores into bins with the specified number of variants. Scores can be optionally included or excluded by passing the `--include` or `--exclude` arguments.
 
 ```bash
-python3 create_score_files.py --outdir test_output --num-variants 1000
+python3 create_score_files.py --output-dir test_output --variants-per-batch 1000
 ```
 
 1. Download the scoring files from the PGS catalog and combine them.
 
     ```bash
-    pgscatalog-download --pgs <PGS_IDS> -t GRCh38 --o output_dir
-    pgscatalog-combine -s output_dir/PGS*.txt.gz -t GRCh38 -o combined.txt.gz
+    pgscatalog-download --pgs PGS000004 PGS000005 --build GRCh38 --outdir output_dir
+    pgscatalog-combine -s test_output/PGS*.txt.gz -t GRCh38 -o test_output/combined.txt.gz
     ```
-1. Match variants in set of input variants to the combined scoring file.
+1. Match variants in set of input variants to the combined scoring file. The target variants file must be in .bim format.
 
     ```bash
-    pgscatalog-match --dataset <input_variants> --scorefiles combined.txt.gz --output output --only_matched
+    pgscatalog-match --dataset primed --target <input_variants> --scorefiles test_output/combined.txt.gz --outdir output_dir --only_match
     ```
 1. Calculate overlap between the set of input varants and the variants in the scoring files using the `calculate_overlap.Rmd` Rmarkdown document.
 
@@ -62,8 +63,9 @@ python3 create_score_files.py --outdir test_output --num-variants 1000
     rmarkdown::render(
         "calculate_overlap.Rmd",
         params=list(
-            matches_file="output/0.ipc.zst",
-            combined_scoring_file="combined.txt.gz"
+            matches_file="test_output/0.ipc.zst",
+            combined_scoring_file="test_output/combined.txt.gz",
+            output_file="test_output/overlap_fraction.txt"
         )
     )
     ```
@@ -73,7 +75,7 @@ python3 create_score_files.py --outdir test_output --num-variants 1000
     rmarkdown::render(
         "overlap_report.Rmd",
         params=list(
-            overlap_file="overlap_fraction.txt"
+            overlap_file="test_output/overlap_fraction.txt"
         )
     )
     ```
