@@ -11,4 +11,9 @@ RUN pip install -r /usr/local/primed-pgs-queries/requirements/requirements.in
 # Install additional R packages
 RUN R -e "install.packages(c('kableExtra', 'rmdformats', 'treemapify'))"
 
+# Cargo is needed for polars. Need to update apt-get first for some reason.
+RUN apt-get update
+RUN apt-get install cargo -y
+RUN R -e "Sys.setenv(NOT_CRAN ='true'); install.packages('polars', repos='https://community.r-multiverse.org')"
+
 CMD /bin/sh

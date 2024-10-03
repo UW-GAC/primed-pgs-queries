@@ -3,3 +3,4 @@ pandas  # dataframes
 papermill  # parameters in python quarto files
 progressbar2  # pretty progress bar
 requests  # api calls
+pgscatalog-utils  # utilities for working with the PGS catalog
