@@ -64,15 +64,22 @@ score_summary <- combined_scores %>%
     group_by(accession, chr_name) %>%
     count(name="n_variants")
 
-overlap_fraction_by_chr <-
-    matches %>%
+match_summary <- matches %>%
     group_by(accession, chr_name) %>%
-    summarise(
-        n_matched=n()
+    count(name="n_matched")
+
+overlap_fraction_by_chr <-
+    score_summary %>%
+    left_join(
+        match_summary,
+        by=c("accession", "chr_name")
     ) %>%
-    left_join(score_summary, by=c("accession", "chr_name")) %>%
     mutate(
+        # Replace NAs with 0
+        n_matched = coalesce(n_matched, 0),
+        # Calculate overlap fraction
         overlap_fraction=n_matched / n_variants,
+        # Make the accession easier to read.
         accession = str_replace(accession, "_hmPOS_GRCh38", "")
     )
 ```
