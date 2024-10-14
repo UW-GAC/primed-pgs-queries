@@ -72,7 +72,7 @@ task create_score_id_files {
     }
     runtime {
         # Pull from DockerHub
-        docker: "uwgac/primed-pgs-queries:0.4.0"
+        docker: "uwgac/primed-pgs-queries:0.4.1"
     }
 }
 
@@ -99,7 +99,7 @@ task combine_score_files {
     }
     runtime {
         # Pull from DockerHub
-        docker: "uwgac/primed-pgs-queries:0.4.0"
+        docker: "uwgac/primed-pgs-queries:0.4.1"
         memory: "16 G"
     }
 }
@@ -134,7 +134,7 @@ task calculate_overlap {
     }
     runtime {
         # Pull from DockerHub
-        docker: "uwgac/primed-pgs-queries:0.4.0"
+        docker: "uwgac/primed-pgs-queries:0.4.1"
         memory: mem_gb + " GB"
     }
 }
@@ -153,7 +153,7 @@ task combine_overlap_files {
     }
     runtime {
         # Pull from DockerHub
-        docker: "uwgac/primed-pgs-queries:0.4.0"
+        docker: "uwgac/primed-pgs-queries:0.4.1"
     }
 }
 
@@ -170,6 +170,6 @@ task render_overlap_report {
     }
     runtime {
         # Pull from DockerHub
-        docker: "uwgac/primed-pgs-queries:0.4.0"
+        docker: "uwgac/primed-pgs-queries:0.4.1"
     }
 }
