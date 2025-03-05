@@ -446,6 +446,7 @@ alt_text = paste(
   "A treemap plot showing the relative number of PRS evaluations by ancestry category as follows:",
   totals %>% mutate(string=glue("{ancestry_category}: {n}")) %>% pull(string) %>% paste(collapse = ", ")
 )
+alt_text
 ```
 
 ```{r, fig.alt=alt_text}
