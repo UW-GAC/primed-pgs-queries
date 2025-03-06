@@ -13,11 +13,11 @@ output:
     fig_width: 10
     fig_height: 4
     thumbnails: false
-    css: "style.css"
+    css: "../style.css"
 params:
-    score_records_file: NA
-    metrics_records_file: NA
-    publication_records_file: NA
+    score_records_file: "test_output/score_records.json"
+    metrics_records_file: "test_output/metrics_records.json"
+    publication_records_file: "test_output/pubs_records.json"
 ---
 
 ```{r library, include=FALSE}
@@ -442,6 +442,13 @@ cmap = c(
 # fill in the rest with colorbrewer Dark2 palette
 cmap[3:length(cmap)] = RColorBrewer::brewer.pal(8, "Dark2")[1:(length(cmap)-2)]
 
+alt_text = paste(
+  "A treemap plot showing the relative number of PRS evaluations by ancestry category as follows:",
+  totals %>% mutate(string=glue("{ancestry_category}: {n}")) %>% pull(string) %>% paste(collapse = ", ")
+)
+```
+
+```{r, fig.alt=alt_text}
 # Tree map plot
 p <- totals %>%
   left_join(enframe(ANCESTRY_LABELS, name="ancestry_category")) %>%
