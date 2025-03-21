@@ -1,4 +1,5 @@
 ---
+lang: "en"
 title: "Report variant overlap for PGS catalog scores"
 author: "PRIMED CC"
 date: "`r lubridate::today()`"
