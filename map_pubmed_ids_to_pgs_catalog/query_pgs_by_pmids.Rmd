@@ -1,4 +1,5 @@
 ---
+lang: en
 title: "PRIMED Publications in PGS catalog"
 author: "PRIMED CC"
 date: "`r lubridate::today()`"
