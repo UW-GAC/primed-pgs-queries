@@ -169,3 +169,5 @@ cython_debug/
 
 # Other
 tmp*
+cromwell-*
+.DS_Store
