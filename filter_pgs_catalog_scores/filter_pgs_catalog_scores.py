@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import requests
 
 import pgs_catalog_client
 
@@ -21,6 +22,7 @@ def write_to_json(results, filename):
 
     with open(filename, "w") as f:
         f.write(json.dumps([x.to_dict() for x in results], default=str, indent=2))
+        f.write("\n")
 
 
 def write_filtered_score_ids(filtered_score_records, filename):
@@ -65,10 +67,24 @@ def search_scores_by_trait(trait_ids, verbose=True):
         if len(api_response.results) == 0:
             raise ValueError(f"No scores found for trait_id: {trait_id}")
 
-        if verbose:
-            print("- Number of scores identified for {}: {}".format(trait_id, len(api_response.results)))
+        trait_results = api_response.results
 
-        all_results = all_results + api_response.results
+        # Handle pagination if there are more results.
+        api_response = api_response.to_dict()
+        done = False
+        while not done:
+            next_url = api_response["next"]
+
+            if next_url is None:
+                done = True
+            else:
+                api_response = requests.get(next_url).json()
+                trait_results += [pgs_catalog_client.Score(**x) for x in api_response["results"]]
+
+        if verbose:
+            print("- Number of scores identified for {}: {}".format(trait_id, len(trait_results)))
+
+        all_results = all_results + trait_results
 
     return all_results
 
