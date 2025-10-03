@@ -6,3 +6,7 @@ workflows:
     - name: pgs_variant_overlap
       subclass: WDL
       primaryDescriptorPath: /pgs_variant_overlap.wdl
+    - name: filter_pgs_catalog_scores
+      subclass: WDL
+      primaryDescriptorPath: /filter_pgs_catalog_scores.wdl
+      testParameterFile: /filter_pgs_catalog_scores.json
