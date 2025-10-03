@@ -217,4 +217,4 @@ if __name__ == "__main__":
     if args.remove:
         write_to_json(cohort_records, os.path.join(args.outdir, "cohort_records.json"))
     # Write out the list of scores.
-    write_filtered_score_ids(filtered_records, os.path.join(args.outdir, "filtered_score_ids_for_trait.txt"))
+    write_filtered_score_ids(filtered_records, os.path.join(args.outdir, "filtered_score_ids.txt"))
