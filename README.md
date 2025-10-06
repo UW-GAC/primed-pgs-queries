@@ -85,6 +85,32 @@ To calculate overlap for a set of scores:
 A [WDL workflow](https://dockstore.org/workflows/github.com/UW-GAC/primed-pgs-queries/pgs_variant_overlap:variant-overlap?tab=info) is also provided on Dockstore and as a .WDL file.
 
 
+### Search PGS catalog scores for specific traits and filter by cohort
+
+The `filter_pgs_catalog_scores` directory contains code to search the PGS catalog for scores associated with specific traits and optionally filter the scores by cohort.
+
+To run the filtering script, you can use the following command:
+
+```bash
+python3 filter_pgs_catalog_scores.py --trait-ids MONDO_0005148 --outdir test_output
+```
+
+If you would like to filter the scores to those for which a specific cohort was not used in development,  you can use the `--remove` argument to specify a cohort to use for filtering scores.
+To remove multiple cohorts, you can use the `--remove` argument multiple times, each with a different cohort name.
+For example, to remove scores from the GERA and RPGEH cohorts, you can use the following command:
+
+```bash
+python3 filter_pgs_catalog_scores.py --trait-ids MONDO_0005148 --remove GERA --remove RPGEH --remove RPEGH --outdir test_output
+```
+The script will output three files in the specified output directory (`--outdir`):
+- `all_score_records_for_trait.json`: A list of all PGS scores associated with the specified trait(s).
+- `filtered_score_ids.txt`: A list of PGS score IDs for the trait. If `--remove` was specified, these are the scores that do not include the specified cohort(s) in development.
+- `cohort_records.json`: A list of records for the specified cohort(s), if any were provided via the `--remove` argument.
+
+
+A [WDL workflow](https://dockstore.org/workflows/github.com/UW-GAC/primed-pgs-queries/filter_pgs_catalog_scores:feature/filter-scores?tab=info) is also provided on Dockstore and as a .WDL file in this repository.
+
+
 ## Developer info
 
 ### Generating the API client
