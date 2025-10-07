@@ -90,6 +90,7 @@ def search_scores_by_trait(trait_ids, verbose=True):
 
     Note:
         See https://ftp.ebi.ac.uk/pub/databases/spot/pgs/metadata/pgs_all_metadata_efo_traits.csv for a list of valid trait IDs.
+        Scores associated with child traits are not included.
     """
     if verbose:
         print("Searching for scores associated with traits..")
