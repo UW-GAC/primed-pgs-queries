@@ -40,6 +40,44 @@ def write_filtered_score_ids(filtered_score_records, filename):
             f.write(f"{score.id}\n")
 
 
+def get_all_scores(verbose=True):
+    """Pull scores from the PGS catalog.
+
+    Args:
+        verbose: If True, print process updates.
+
+    Returns:
+        List of score records (instances of Score model) that are associated with one of the specified trait_ids.
+    """
+    if verbose:
+        print("Pulling all scores from PGS catalog...")
+
+    api_instance = pgs_catalog_client.ScoreEndpointsApi()
+    api_response = api_instance.get_all_scores()
+
+    if len(api_response.results) == 0:
+        raise ValueError("No scores found!")
+
+    results = api_response.results
+
+    # Handle pagination if there are more results.
+    api_response = api_response.to_dict()
+    done = False
+    while not done:
+        next_url = api_response["next"]
+
+        if next_url is None:
+            done = True
+        else:
+            api_response = requests.get(next_url).json()
+            results += [pgs_catalog_client.Score(**x) for x in api_response["results"]]
+
+    if verbose:
+        print("- Number of scores: {}".format(len(results)))
+
+    return results
+
+
 def search_scores_by_trait(trait_ids, verbose=True):
     """Search PGS catalog scores by trait_id (ontology ID, e.g., MONDO_0005148).
 
@@ -174,7 +212,7 @@ if __name__ == "__main__":
         type=str,
         nargs="+",
         action="extend",
-        required=True,
+        required=False,
         help="trait_id (as defined by PGS catalog) to search for. Example: MONDO_0005148",
     )
     parser.add_argument(
@@ -202,7 +240,10 @@ if __name__ == "__main__":
 
     verbose = not args.quiet
 
-    score_records = search_scores_by_trait(args.trait_id, verbose=verbose)
+    if args.trait_id:
+        score_records = search_scores_by_trait(args.trait_id, verbose=verbose)
+    else:
+        score_records = get_all_scores(verbose=verbose)
     if args.remove:
         cohort_records = get_cohort_records(args.remove, verbose=verbose)
         filtered_records = remove_score_records_for_cohorts(score_records, cohort_records, verbose=verbose)
