@@ -3,7 +3,7 @@ version 1.0
 workflow filter_pgs_catalog_scores {
 
     input {
-        Array[String] trait_ids
+        Array[String] trait_ids = []
         Array[String] cohort_short_names = []
     }
 
@@ -15,6 +15,7 @@ workflow filter_pgs_catalog_scores {
 
     output {
         File all_score_records_file = filter_scores.all_score_records_file
+        File? trait_records_file = filter_scores.trait_records_file
         File? cohort_records_file = filter_scores.cohort_records_file
         File filtered_score_id_file = filter_scores.filtered_score_id_file
     }
@@ -28,7 +29,7 @@ workflow filter_pgs_catalog_scores {
 
 task filter_scores {
     input {
-        Array[String] trait_ids
+        Array[String] trait_ids = []
         Array[String] cohort_short_names = []
     }
 
@@ -43,12 +44,13 @@ task filter_scores {
 
         >>>
     output {
-        File all_score_records_file = "output/all_score_records_for_trait.json"
+        File all_score_records_file = "output/score_records.json"
+        File? trait_records_file = "output/trait_records.json"
         File? cohort_records_file = "output/cohort_records.json"
         File filtered_score_id_file = "output/filtered_score_ids.txt"
     }
     runtime {
         # Pull from DockerHub
-        docker: "uwgac/primed-pgs-queries:0.5.0"
+        docker: "uwgac/primed-pgs-queries:0.5.1"
     }
 }

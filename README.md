@@ -97,15 +97,16 @@ python3 filter_pgs_catalog_scores.py --trait-ids MONDO_0005148 --outdir test_out
 
 If you would like to filter the scores to those for which a specific cohort was not used in development,  you can use the `--remove` argument to specify a cohort to use for filtering scores.
 To remove multiple cohorts, you can use the `--remove` argument multiple times, each with a different cohort name.
-For example, to remove scores from the GERA and RPGEH cohorts, you can use the following command:
+For example, to identify scores for T2D and those where the GERA and RPGEH cohorts were used in development, you can run the following command:
 
 ```bash
-python3 filter_pgs_catalog_scores.py --trait-ids MONDO_0005148 --remove GERA --remove RPGEH --remove RPEGH --outdir test_output
+python3 filter_pgs_catalog_scores.py --trait-id MONDO_0005148 --remove GERA --remove RPGEH --remove RPEGH --outdir test_output
 ```
 The script will output three files in the specified output directory (`--outdir`):
-- `all_score_records_for_trait.json`: A list of all PGS scores associated with the specified trait(s).
-- `filtered_score_ids.txt`: A list of PGS score IDs for the trait. If `--remove` was specified, these are the scores that do not include the specified cohort(s) in development.
+- `score_records.json`: A list of all PGS scores before filtering. If `--trait-id` was specified, this only contains scores associated with the specified trait(s).
 - `cohort_records.json`: A list of records for the specified cohort(s), if any were provided via the `--remove` argument.
+- `trait_records.json`: A list of records for the specified trait(s), if any were provided via the `--trait-id` argument.
+- `filtered_score_ids.txt`: A list of PGS score IDs, after filtering by trait and cohort. If `--remove` was specified, these are the scores that do not include the specified cohort(s) in development.
 
 
 A [WDL workflow](https://dockstore.org/workflows/github.com/UW-GAC/primed-pgs-queries/filter_pgs_catalog_scores:feature/filter-scores?tab=info) is also provided on Dockstore and as a .WDL file in this repository.

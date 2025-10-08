@@ -40,6 +40,44 @@ def write_filtered_score_ids(filtered_score_records, filename):
             f.write(f"{score.id}\n")
 
 
+def get_all_scores(verbose=True):
+    """Pull scores from the PGS catalog.
+
+    Args:
+        verbose: If True, print process updates.
+
+    Returns:
+        List of score records (instances of Score model) that are associated with one of the specified trait_ids.
+    """
+    if verbose:
+        print("Pulling all scores from PGS catalog...")
+
+    api_instance = pgs_catalog_client.ScoreEndpointsApi()
+    api_response = api_instance.get_all_scores()
+
+    if len(api_response.results) == 0:
+        raise ValueError("No scores found!")
+
+    results = api_response.results
+
+    # Handle pagination if there are more results.
+    api_response = api_response.to_dict()
+    done = False
+    while not done:
+        next_url = api_response["next"]
+
+        if next_url is None:
+            done = True
+        else:
+            api_response = requests.get(next_url).json()
+            results += [pgs_catalog_client.Score(**x) for x in api_response["results"]]
+
+    if verbose:
+        print("- Number of scores: {}".format(len(results)))
+
+    return results
+
+
 def search_scores_by_trait(trait_ids, verbose=True):
     """Search PGS catalog scores by trait_id (ontology ID, e.g., MONDO_0005148).
 
@@ -52,6 +90,7 @@ def search_scores_by_trait(trait_ids, verbose=True):
 
     Note:
         See https://ftp.ebi.ac.uk/pub/databases/spot/pgs/metadata/pgs_all_metadata_efo_traits.csv for a list of valid trait IDs.
+        Scores associated with child traits are not included.
     """
     if verbose:
         print("Searching for scores associated with traits..")
@@ -86,7 +125,42 @@ def search_scores_by_trait(trait_ids, verbose=True):
 
         all_results = all_results + trait_results
 
+    if verbose:
+        print("- Total number of scores identified for all traits: {}".format(len(all_results)))
+
     return all_results
+
+
+def get_trait_records(trait_ids, verbose=True):
+    """Get the record for traits, which includes scores associated with that trait.
+
+    Args:
+        trait_ids: A list of ontology IDs to retrieve, as used by the PGS Catalog.
+        verbose: If True, print out the name (short and full) of the trait retrieved.
+
+    Returns:
+        A list of trait records for the specified trait(s).
+
+    Note:
+        See https://ftp.ebi.ac.uk/pub/databases/spot/pgs/metadata/pgs_all_metadata_efo_traits.csv for a list of traits in the PGS catalog.
+    """
+    if verbose:
+        print("Retrieving trait records...")
+
+    api_instance = pgs_catalog_client.TraitEndpointsApi()
+    trait_records = []
+
+    for trait_id in trait_ids:
+        record = api_instance.get_trait(trait_id=trait_id, include_children=0)
+
+        if not record.id:
+            raise ValueError(f"No trait found with ID: {trait_id}")
+
+        if verbose:
+            print("- {} ({})".format(record.id, record.label))
+        trait_records.append(record)
+
+    return trait_records
 
 
 def get_cohort_records(cohort_short_names, verbose=True):
@@ -118,7 +192,7 @@ def get_cohort_records(cohort_short_names, verbose=True):
 
         record = api_response.results[0]
         if verbose:
-            print("- Retrieved cohort record for: {} ({})".format(record.name_short, record.name_full))
+            print("- {} ({})".format(record.name_short, record.name_full))
         cohort_records.append(record)
 
     return cohort_records
@@ -174,7 +248,7 @@ if __name__ == "__main__":
         type=str,
         nargs="+",
         action="extend",
-        required=True,
+        required=False,
         help="trait_id (as defined by PGS catalog) to search for. Example: MONDO_0005148",
     )
     parser.add_argument(
@@ -202,19 +276,27 @@ if __name__ == "__main__":
 
     verbose = not args.quiet
 
-    score_records = search_scores_by_trait(args.trait_id, verbose=verbose)
-    if args.remove:
-        cohort_records = get_cohort_records(args.remove, verbose=verbose)
-        filtered_records = remove_score_records_for_cohorts(score_records, cohort_records, verbose=verbose)
-    else:
-        filtered_records = score_records
+    # Start the querying and write results out as they are generated.
 
     # Write results out to a JSON file.
     os.makedirs(args.outdir, exist_ok=True)
     if verbose:
         print(f"Writing results to directory: {args.outdir}")
-    write_to_json(score_records, os.path.join(args.outdir, "all_score_records_for_trait.json"))
+
+    if args.trait_id:
+        trait_records = get_trait_records(args.trait_id, verbose=verbose)
+        write_to_json(trait_records, os.path.join(args.outdir, "trait_records.json"))
+        score_records = search_scores_by_trait(args.trait_id, verbose=verbose)
+        write_to_json(score_records, os.path.join(args.outdir, "score_records.json"))
+    else:
+        score_records = get_all_scores(verbose=verbose)
+        write_to_json(score_records, os.path.join(args.outdir, "score_records.json"))
     if args.remove:
+        cohort_records = get_cohort_records(args.remove, verbose=verbose)
         write_to_json(cohort_records, os.path.join(args.outdir, "cohort_records.json"))
-    # Write out the list of scores.
+        filtered_records = remove_score_records_for_cohorts(score_records, cohort_records, verbose=verbose)
+    else:
+        filtered_records = score_records
+
+    # Write filtered score ids out to a JSON file.
     write_filtered_score_ids(filtered_records, os.path.join(args.outdir, "filtered_score_ids.txt"))

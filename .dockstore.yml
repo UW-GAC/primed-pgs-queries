@@ -10,3 +10,4 @@ workflows:
       subclass: WDL
       primaryDescriptorPath: /filter_pgs_catalog_scores.wdl
       testParameterFile: /filter_pgs_catalog_scores.json
+      topic: Filter PGS Catalog scores by trait and/or cohort
