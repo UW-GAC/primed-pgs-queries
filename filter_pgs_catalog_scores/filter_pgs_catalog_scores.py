@@ -298,5 +298,6 @@ if __name__ == "__main__":
     else:
         filtered_records = score_records
 
-    # Write filtered score ids out to a JSON file.
+    # Write filtered score information out to a JSON file.
+    write_to_json(filtered_records, os.path.join(args.outdir, "filtered_score_records.json"))
     write_filtered_score_ids(filtered_records, os.path.join(args.outdir, "filtered_score_ids.txt"))
