@@ -51,6 +51,6 @@ task filter_scores {
     }
     runtime {
         # Pull from DockerHub
-        docker: "uwgac/primed-pgs-queries:0.5.1"
+        docker: "uwgac/primed-pgs-queries:0.5.2"
     }
 }
