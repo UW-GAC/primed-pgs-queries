@@ -97,15 +97,18 @@ python3 filter_pgs_catalog_scores.py --trait-ids MONDO_0005148 --outdir test_out
 
 If you would like to filter the scores to those for which a specific cohort was not used in development,  you can use the `--remove` argument to specify a cohort to use for filtering scores.
 To remove multiple cohorts, you can use the `--remove` argument multiple times, each with a different cohort name.
-For example, to identify scores for T2D and those where the GERA and RPGEH cohorts were used in development, you can run the following command:
+Note that some cohorts are represented multiple times on the PGS catalog; in these cases, you will need to specify all variations of the cohort name in separate `--remove` arguments to fully filter out scores associated with that cohort.
+For example, to identify scores for T2D and those where the GERA/RPGEH cohort was used in development, you can run the following command:
 
 ```bash
 python3 filter_pgs_catalog_scores.py --trait-id MONDO_0005148 --remove GERA --remove RPGEH --remove RPEGH --outdir test_output
 ```
+
 The script will output three files in the specified output directory (`--outdir`):
 - `score_records.json`: A list of all PGS scores before filtering. If `--trait-id` was specified, this only contains scores associated with the specified trait(s).
 - `cohort_records.json`: A list of records for the specified cohort(s), if any were provided via the `--remove` argument.
 - `trait_records.json`: A list of records for the specified trait(s), if any were provided via the `--trait-id` argument.
+- `filtered_score_records.json`: A list of PGS score records after filtering by trait and cohort. If `--remove` was specified, these are the scores that do not include the specified cohort(s) in development.
 - `filtered_score_ids.txt`: A list of PGS score IDs, after filtering by trait and cohort. If `--remove` was specified, these are the scores that do not include the specified cohort(s) in development.
 
 
